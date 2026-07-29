@@ -4,267 +4,213 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#001020">
+  <meta name="theme-color" content="#002E5F">
   <title>ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
       height: 100%;
       overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      -webkit-font-smoothing: antialiased;
+      padding-bottom: 0;
     }
 
-    /* ── Achtergrond: donker met team-kleuren ── */
-    body {
-      background:
-        radial-gradient(ellipse 80% 60% at 25% 15%, rgba(0,46,95,0.95) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 80% 85%, rgba(189,43,11,0.65) 0%, transparent 55%),
-        #001020;
+    .login-pagina {
+      min-height: 100svh;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      height: 100svh;
-      padding: calc(env(safe-area-inset-top, 0px) + 32px) 24px
-               calc(env(safe-area-inset-bottom, 0px) + 28px);
-      user-select: none;
-      -webkit-user-select: none;
+      justify-content: center;
+      padding: 20px;
     }
 
-    /* ── Bovenste blok: tijd + logo + naam ── */
-    .lock-top {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      flex-shrink: 0;
+    .login-kaart {
+      width: 100%;
+      max-width: 340px;
+      padding: 36px 28px 32px;
+      text-align: center;
     }
 
-    .lock-tijd {
-      font-size: 80px;
-      font-weight: 200;
-      color: #fff;
-      letter-spacing: -4px;
-      line-height: 1;
+    .login-logo {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 12px;
+      object-fit: contain;
+    }
+
+    .login-team {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blauw);
+      letter-spacing: -0.4px;
       margin-bottom: 4px;
-      font-variant-numeric: tabular-nums;
     }
 
-    .lock-datum {
-      font-size: 17px;
-      font-weight: 400;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: 0.1px;
+    .login-sub {
+      font-size: 14px;
+      color: var(--inkt-zacht);
       margin-bottom: 28px;
     }
 
-    .lock-logo {
-      width: 58px;
-      height: 58px;
-      object-fit: contain;
-      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.5));
-      margin-bottom: 10px;
-    }
-
-    .lock-teamnaam {
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.2px;
-    }
-
-    /* ── Midden: dots + foutmelding ── */
-    .lock-midden {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-    }
-
-    .lock-vraag {
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.65);
-      letter-spacing: 0.1px;
-    }
-
+    /* PIN dots */
     .pin-dots {
       display: flex;
+      justify-content: center;
       gap: 16px;
-      align-items: center;
+      margin-bottom: 28px;
     }
 
     .pin-dot {
       width: 13px;
       height: 13px;
       border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.55);
+      border: 2px solid rgba(0,46,95,0.30);
       background: transparent;
       transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
     }
 
     .pin-dot.gevuld {
-      background: #fff;
-      border-color: #fff;
+      background: var(--blauw);
+      border-color: var(--blauw);
       transform: scale(1.12);
     }
 
-    .pin-fout {
-      font-size: 13px;
-      font-weight: 500;
-      color: rgba(255,120,100,0.95);
-      min-height: 18px;
-      text-align: center;
-    }
-
-    @keyframes schudden {
-      0%, 100% { transform: translateX(0); }
-      20%       { transform: translateX(-8px); }
-      40%       { transform: translateX(8px); }
-      60%       { transform: translateX(-5px); }
-      80%       { transform: translateX(5px); }
-    }
-
-    .schud { animation: schudden 0.42s ease; }
-
-    /* ── Onderste blok: numpad ── */
-    .lock-keypad {
+    /* Keypad — ronde toetsen, lichte stijl */
+    .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      flex-shrink: 0;
-      width: 100%;
-      max-width: 300px;
+      gap: 12px;
     }
 
     .keypad-toets {
-      width: 76px;
-      height: 76px;
+      width: 68px;
+      height: 68px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.18);
-      backdrop-filter: blur(16px) saturate(160%);
-      -webkit-backdrop-filter: blur(16px) saturate(160%);
-      border: none;
-      color: #fff;
+      background: rgba(0,46,95,0.08);
+      border: 1px solid rgba(0,46,95,0.10);
+      color: var(--inkt);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
       margin: 0 auto;
-      font-family: inherit;
+      font-family: var(--font);
       transition: background 0.1s ease, transform 0.1s ease;
       -webkit-tap-highlight-color: transparent;
     }
 
     .keypad-toets:active {
-      background: rgba(255,255,255,0.38);
-      transform: scale(0.93);
+      background: rgba(0,46,95,0.18);
+      transform: scale(0.92);
     }
 
     .keypad-hoofdcijfer {
-      font-size: 30px;
+      font-size: 26px;
       font-weight: 300;
       line-height: 1;
-      letter-spacing: -0.5px;
+      color: var(--inkt);
     }
 
     .keypad-letters {
-      font-size: 8px;
+      font-size: 7.5px;
       font-weight: 600;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.1px;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
+      color: var(--inkt-zacht);
       line-height: 1;
       margin-top: 2px;
     }
 
-    .keypad-leeg {
-      /* lege cel links van 0 — onzichtbaar */
-      pointer-events: none;
-    }
+    .keypad-leeg { pointer-events: none; }
 
     .keypad-wis {
       background: transparent;
-      backdrop-filter: none;
-      font-size: 26px;
-      font-weight: 400;
+      border-color: transparent;
+      font-size: 22px;
+      color: var(--inkt-zacht);
+    }
+    .keypad-wis:active {
+      background: rgba(0,46,95,0.08);
     }
 
-    .keypad-wis:active {
-      background: rgba(255,255,255,0.12);
+    .pin-fout {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--rood);
+      margin-top: 14px;
+      min-height: 18px;
     }
+
+    @keyframes schudden {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-7px); }
+      40%       { transform: translateX(7px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .schud { animation: schudden 0.42s ease; }
   </style>
 </head>
 <body>
+  <div class="login-pagina">
+    <div class="glass-kaart login-kaart">
 
-  <!-- Bovenste blok: tijd, datum, logo -->
-  <div class="lock-top">
-    <div class="lock-tijd" id="lock-tijd">00:00</div>
-    <div class="lock-datum" id="lock-datum">maandag 1 januari</div>
-    <img class="lock-logo" src="img/logo.png" alt="ASC Nieuwland" />
-    <div class="lock-teamnaam">ASC Nieuwland 3</div>
-  </div>
+      <img class="login-logo" src="img/logo.png" alt="ASC Nieuwland" />
+      <div class="login-team">ASC Nieuwland 3</div>
+      <div class="login-sub">Voer de toegangscode in</div>
 
-  <!-- Midden: dots -->
-  <div class="lock-midden">
-    <div class="lock-vraag">Voer toegangscode in</div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="dot-0"></div>
-      <div class="pin-dot" id="dot-1"></div>
-      <div class="pin-dot" id="dot-2"></div>
-      <div class="pin-dot" id="dot-3"></div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button class="keypad-toets" data-cijfer="1">
+          <span class="keypad-hoofdcijfer">1</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="2">
+          <span class="keypad-hoofdcijfer">2</span>
+          <span class="keypad-letters">ABC</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="3">
+          <span class="keypad-hoofdcijfer">3</span>
+          <span class="keypad-letters">DEF</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="4">
+          <span class="keypad-hoofdcijfer">4</span>
+          <span class="keypad-letters">GHI</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="5">
+          <span class="keypad-hoofdcijfer">5</span>
+          <span class="keypad-letters">JKL</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="6">
+          <span class="keypad-hoofdcijfer">6</span>
+          <span class="keypad-letters">MNO</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="7">
+          <span class="keypad-hoofdcijfer">7</span>
+          <span class="keypad-letters">PQRS</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="8">
+          <span class="keypad-hoofdcijfer">8</span>
+          <span class="keypad-letters">TUV</span>
+        </button>
+        <button class="keypad-toets" data-cijfer="9">
+          <span class="keypad-hoofdcijfer">9</span>
+          <span class="keypad-letters">WXYZ</span>
+        </button>
+        <div class="keypad-leeg"></div>
+        <button class="keypad-toets" data-cijfer="0">
+          <span class="keypad-hoofdcijfer">0</span>
+        </button>
+        <button class="keypad-toets keypad-wis" id="wis-btn">⌫</button>
+      </div>
+
+      <div class="pin-fout" id="pin-fout"></div>
     </div>
-    <div class="pin-fout" id="pin-fout"></div>
-  </div>
-
-  <!-- Numpad -->
-  <div class="lock-keypad" id="keypad">
-    <button class="keypad-toets" data-cijfer="1">
-      <span class="keypad-hoofdcijfer">1</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="2">
-      <span class="keypad-hoofdcijfer">2</span>
-      <span class="keypad-letters">ABC</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="3">
-      <span class="keypad-hoofdcijfer">3</span>
-      <span class="keypad-letters">DEF</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="4">
-      <span class="keypad-hoofdcijfer">4</span>
-      <span class="keypad-letters">GHI</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="5">
-      <span class="keypad-hoofdcijfer">5</span>
-      <span class="keypad-letters">JKL</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="6">
-      <span class="keypad-hoofdcijfer">6</span>
-      <span class="keypad-letters">MNO</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="7">
-      <span class="keypad-hoofdcijfer">7</span>
-      <span class="keypad-letters">PQRS</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="8">
-      <span class="keypad-hoofdcijfer">8</span>
-      <span class="keypad-letters">TUV</span>
-    </button>
-    <button class="keypad-toets" data-cijfer="9">
-      <span class="keypad-hoofdcijfer">9</span>
-      <span class="keypad-letters">WXYZ</span>
-    </button>
-    <div class="keypad-leeg"></div>
-    <button class="keypad-toets" data-cijfer="0">
-      <span class="keypad-hoofdcijfer">0</span>
-    </button>
-    <button class="keypad-toets keypad-wis" id="wis-btn">⌫</button>
   </div>
 
   <script src="js/config.js"></script>
@@ -275,18 +221,6 @@
       location.href = "index.html";
     }
 
-    // ── Klok ──
-    function updateKlok() {
-      const nu = new Date();
-      document.getElementById("lock-tijd").textContent =
-        nu.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
-      document.getElementById("lock-datum").textContent =
-        nu.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" });
-    }
-    updateKlok();
-    setInterval(updateKlok, 10000);
-
-    // ── PIN logica ──
     let ingevoerd = "";
 
     function updateDots() {
@@ -302,7 +236,7 @@
       } else {
         const fout = document.getElementById("pin-fout");
         const dots = document.getElementById("pin-dots");
-        fout.textContent = "Onjuiste code";
+        fout.textContent = "Onjuiste code. Probeer opnieuw.";
         dots.classList.remove("schud");
         void dots.offsetHeight;
         dots.classList.add("schud");
