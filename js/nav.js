@@ -1,6 +1,5 @@
 /* ============================================================
-   ASC Nieuwland 3 — Bottom Tab Bar Navigation
-   Injecteert de floating tab bar in de body
+   ASC Nieuwland 3 — Hamburger navigatie
    ============================================================ */
 
 (function () {
@@ -13,13 +12,23 @@
     { bestand: "stand.html",       icoon: "📊", label: "Stand"      },
   ];
 
-  // Bepaal huidig bestand uit URL
   const huidig = location.pathname.split("/").pop() || "index.html";
 
-  const nav = document.createElement("nav");
-  nav.className = "tab-bar";
-  nav.setAttribute("role", "navigation");
-  nav.setAttribute("aria-label", "Hoofdnavigatie");
+  // Hamburger knop
+  const btn = document.createElement("button");
+  btn.className = "hamburger-btn";
+  btn.setAttribute("aria-label", "Menu");
+  btn.setAttribute("aria-expanded", "false");
+  btn.innerHTML = '<span class="hamburger-icoon">☰</span>';
+
+  // Backdrop om buiten menu te klikken
+  const backdrop = document.createElement("div");
+  backdrop.className = "menu-backdrop";
+
+  // Menu panel
+  const menu = document.createElement("nav");
+  menu.className = "hamburger-menu";
+  menu.setAttribute("aria-label", "Hoofdnavigatie");
 
   tabs.forEach(function (tab) {
     const isActief = huidig === tab.bestand ||
@@ -27,19 +36,45 @@
 
     const a = document.createElement("a");
     a.href = tab.bestand;
-    a.className = "tab-item" + (isActief ? " actief" : "");
+    a.className = "menu-item" + (isActief ? " actief" : "");
     a.setAttribute("aria-current", isActief ? "page" : "false");
     a.innerHTML =
-      '<span class="tab-icon" aria-hidden="true">' + tab.icoon + "</span>" +
-      '<span class="tab-label">' + tab.label + "</span>";
+      '<span class="menu-icoon">' + tab.icoon + "</span>" +
+      '<span class="menu-label">' + tab.label + "</span>" +
+      (isActief ? '<span class="menu-actief-stip"></span>' : "");
 
-    // Scale terug bij aanraking
-    a.addEventListener("touchstart", function () {
-      a.style.transition = "transform 0.1s ease";
-    }, { passive: true });
+    if (isActief) {
+      a.addEventListener("click", sluitMenu);
+    }
 
-    nav.appendChild(a);
+    menu.appendChild(a);
   });
 
-  document.body.appendChild(nav);
+  function openMenu() {
+    menu.classList.add("open");
+    backdrop.classList.add("open");
+    btn.setAttribute("aria-expanded", "true");
+    btn.querySelector(".hamburger-icoon").textContent = "✕";
+  }
+
+  function sluitMenu() {
+    menu.classList.remove("open");
+    backdrop.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    btn.querySelector(".hamburger-icoon").textContent = "☰";
+  }
+
+  btn.addEventListener("click", function () {
+    menu.classList.contains("open") ? sluitMenu() : openMenu();
+  });
+
+  backdrop.addEventListener("click", sluitMenu);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") sluitMenu();
+  });
+
+  document.body.appendChild(btn);
+  document.body.appendChild(backdrop);
+  document.body.appendChild(menu);
 })();
