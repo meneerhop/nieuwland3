@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1a6b38">
+  <title>Training — ASC Nieuwland 3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="pagina-header">
+      <div>
+        <div class="pagina-titel">Training</div>
+        <div class="pagina-ondertitel">Sessies & aanwezigheid</div>
+      </div>
+    </div>
+
+    <!-- Training lijst -->
+    <div id="training-lijst">
+      <div class="skeleton" style="height:120px;border-radius:22px;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:120px;border-radius:22px;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:120px;border-radius:22px;margin-bottom:12px"></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab-nieuw" title="Training toevoegen">＋</button>
+
+  <!-- Training modal -->
+  <div class="modal-overlay" id="training-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel" id="training-modal-titel">Training toevoegen</div>
+        <button class="modal-sluiten" id="training-modal-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud">
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="training-form-titel">Titel</label>
+          <input type="text" id="training-form-titel" class="formulier-input" placeholder="bijv. Conditietraining" autocomplete="off">
+        </div>
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="training-form-datum">Datum & tijd</label>
+          <input type="datetime-local" id="training-form-datum" class="formulier-input">
+        </div>
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="training-form-beschrijving">Beschrijving (optioneel)</label>
+          <textarea id="training-form-beschrijving" class="formulier-textarea" placeholder="Wat gaan we doen?"></textarea>
+        </div>
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="training-form-aanwezig">Aanwezige spelers (kommagescheiden)</label>
+          <textarea
+            id="training-form-aanwezig"
+            class="formulier-textarea"
+            style="min-height:64px"
+            placeholder="Jan, Piet, Klaas, …"></textarea>
+        </div>
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="training-form-notities">Notities (optioneel)</label>
+          <textarea id="training-form-notities" class="formulier-textarea" placeholder="Aandachtspunten, oefeningen, feedback…"></textarea>
+        </div>
+
+        <div class="pin-fout" id="training-form-fout" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+      </div>
+      <div class="modal-voet">
+        <button class="btn btn-primair w-full" id="training-opslaan-btn">Opslaan</button>
+        <button class="btn btn-gevaar" id="training-verwijder-btn" style="display:none;flex-shrink:0">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>controleerAuth();</script>
+  <script src="js/nav.js"></script>
+  <script src="js/training.js"></script>
+</body>
+</html>

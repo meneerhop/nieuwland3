@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1a6b38">
+  <title>Inloggen — ASC Nieuwland 3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { padding-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="login-pagina">
+    <div class="glass-kaart login-kaart">
+      <div class="login-logo">⚽</div>
+      <div class="login-team">ASC Nieuwland 3</div>
+      <div class="login-sub">Voer de toegangscode in</div>
+
+      <!-- PIN dots -->
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+      </div>
+
+      <!-- Keypad -->
+      <div class="keypad" id="keypad">
+        <button class="keypad-toets" data-cijfer="1">1</button>
+        <button class="keypad-toets" data-cijfer="2">2</button>
+        <button class="keypad-toets" data-cijfer="3">3</button>
+        <button class="keypad-toets" data-cijfer="4">4</button>
+        <button class="keypad-toets" data-cijfer="5">5</button>
+        <button class="keypad-toets" data-cijfer="6">6</button>
+        <button class="keypad-toets" data-cijfer="7">7</button>
+        <button class="keypad-toets" data-cijfer="8">8</button>
+        <button class="keypad-toets" data-cijfer="9">9</button>
+        <!-- Lege cel links van 0 -->
+        <div></div>
+        <button class="keypad-toets keypad-nul" data-cijfer="0">0</button>
+        <button class="keypad-toets wissen" id="wis-btn">⌫</button>
+      </div>
+
+      <div class="pin-fout" id="pin-fout"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    const AUTH_KEY = "nieuwland3_pin";
+    const CORRECT_PIN = SITE_PIN;
+
+    // Als al ingelogd, stuur door
+    if (localStorage.getItem(AUTH_KEY) === CORRECT_PIN) {
+      location.href = "index.html";
+    }
+
+    let ingevoerd = "";
+
+    function updateDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById("dot-" + i);
+        dot.classList.toggle("gevuld", i < ingevoerd.length);
+      }
+    }
+
+    function schudden() {
+      const kaart = document.querySelector(".login-kaart");
+      kaart.style.animation = "none";
+      // Trigger reflow
+      void kaart.offsetHeight;
+      kaart.style.animation = "";
+
+      const fout = document.getElementById("pin-fout");
+      fout.style.animation = "none";
+      void fout.offsetHeight;
+      fout.style.animation = "schudden 0.4s ease";
+    }
+
+    function controleerPin() {
+      if (ingevoerd === CORRECT_PIN) {
+        localStorage.setItem(AUTH_KEY, CORRECT_PIN);
+        // Kleine vertraging voor visuele bevestiging
+        setTimeout(function () {
+          location.href = "index.html";
+        }, 120);
+      } else {
+        const fout = document.getElementById("pin-fout");
+        fout.textContent = "Onjuiste code. Probeer opnieuw.";
+        schudden();
+
+        // Reset na schudden
+        setTimeout(function () {
+          ingevoerd = "";
+          updateDots();
+          fout.textContent = "";
+        }, 900);
+      }
+    }
+
+    function verwerkCijfer(cijfer) {
+      if (ingevoerd.length >= 4) return;
+      ingevoerd += cijfer;
+      updateDots();
+
+      if (ingevoerd.length === 4) {
+        setTimeout(controleerPin, 80);
+      }
+    }
+
+    function wisLaatste() {
+      if (ingevoerd.length > 0) {
+        ingevoerd = ingevoerd.slice(0, -1);
+        updateDots();
+        document.getElementById("pin-fout").textContent = "";
+      }
+    }
+
+    // Keypad knoppen
+    document.querySelectorAll(".keypad-toets[data-cijfer]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        verwerkCijfer(btn.dataset.cijfer);
+      });
+
+      // Haptic-achtige feedback: kleine scale
+      btn.addEventListener("touchstart", function () {
+        btn.style.transition = "transform 0.08s ease, background 0.08s ease";
+      }, { passive: true });
+    });
+
+    document.getElementById("wis-btn").addEventListener("click", wisLaatste);
+
+    // Keyboard support
+    document.addEventListener("keydown", function (e) {
+      if (e.key >= "0" && e.key <= "9") {
+        verwerkCijfer(e.key);
+      } else if (e.key === "Backspace") {
+        wisLaatste();
+      }
+    });
+  </script>
+</body>
+</html>

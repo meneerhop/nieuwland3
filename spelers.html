@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1a6b38">
+  <title>Spelers — ASC Nieuwland 3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="pagina-header">
+      <div>
+        <div class="pagina-titel">Spelers</div>
+        <div class="pagina-ondertitel">ASC Nieuwland 3 selectie</div>
+      </div>
+    </div>
+
+    <!-- Zoekbalk -->
+    <div style="position:relative;margin-bottom:16px">
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
+      <input
+        type="search"
+        id="zoek-input"
+        class="formulier-input"
+        placeholder="Zoek op naam of positie…"
+        style="padding-left:42px;border-radius:var(--radius-pill)"
+        autocomplete="off">
+    </div>
+
+    <!-- Spelers grid -->
+    <div class="spelers-grid" id="spelers-grid">
+      <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
+      <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
+      <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
+      <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab-nieuw" title="Speler toevoegen">＋</button>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" id="speler-detail-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel">Spelersprofiel</div>
+        <button class="modal-sluiten" id="detail-modal-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud" id="detail-inhoud">
+        <!-- Wordt gevuld door JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Modal: toevoegen / bewerken -->
+  <div class="modal-overlay" id="speler-form-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel" id="form-modal-titel">Speler toevoegen</div>
+        <button class="modal-sluiten" id="form-modal-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud">
+
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-naam">Naam</label>
+            <input type="text" id="form-naam" class="formulier-input" placeholder="Volledige naam" autocomplete="off">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0;min-width:80px">
+            <label class="formulier-label" for="form-rugnummer">Rugnr.</label>
+            <input type="number" id="form-rugnummer" class="formulier-input" placeholder="–" min="1" max="99">
+          </div>
+        </div>
+
+        <div class="formulier-groep mt-12">
+          <label class="formulier-label" for="form-positie">Positie</label>
+          <select id="form-positie" class="formulier-select">
+            <option value="GK">GK – Keeper</option>
+            <option value="DEF">DEF – Verdediger</option>
+            <option value="MID">MID – Middenvelder</option>
+            <option value="AAN">AAN – Aanvaller</option>
+          </select>
+        </div>
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="form-foto_url">Foto URL (optioneel)</label>
+          <input type="url" id="form-foto_url" class="formulier-input" placeholder="https://…" autocomplete="off">
+        </div>
+
+        <div class="sectie-label" style="margin-top:16px;margin-bottom:8px">Statistieken</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-wedstrijden_gespeeld">Gespeeld</label>
+            <input type="number" id="form-wedstrijden_gespeeld" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-goals">Doelpunten</label>
+            <input type="number" id="form-goals" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-assists">Assists</label>
+            <input type="number" id="form-assists" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-gele_kaarten">Geel 🟨</label>
+            <input type="number" id="form-gele_kaarten" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-rode_kaarten">Rood 🟥</label>
+            <input type="number" id="form-rode_kaarten" class="formulier-input" value="0" min="0">
+          </div>
+        </div>
+
+        <div class="formulier-groep mt-12">
+          <label class="formulier-label" for="form-biografie">Biografie (optioneel)</label>
+          <textarea id="form-biografie" class="formulier-textarea" placeholder="Korte beschrijving van de speler…"></textarea>
+        </div>
+
+        <div class="pin-fout" id="form-speler-fout" style="font-size:13px;min-height:18px;margin-bottom:8px"></div>
+      </div>
+      <div class="modal-voet">
+        <button class="btn btn-primair w-full" id="form-opslaan-btn">Opslaan</button>
+        <button class="btn btn-gevaar" id="form-verwijder-btn" style="display:none;flex-shrink:0">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>controleerAuth();</script>
+  <script src="js/nav.js"></script>
+  <script src="js/spelers.js"></script>
+</body>
+</html>

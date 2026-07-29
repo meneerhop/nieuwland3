@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1a6b38">
+  <title>Stand — ASC Nieuwland 3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="pagina-header">
+      <div>
+        <div class="pagina-titel">Stand</div>
+        <div class="pagina-ondertitel">Klassement</div>
+      </div>
+    </div>
+
+    <!-- Legenda -->
+    <div style="font-size:11px;color:var(--inkt-zacht);margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap">
+      <span>G = Gespeeld</span>
+      <span>W = Gewonnen</span>
+      <span>G = Gelijk</span>
+      <span>V = Verloren</span>
+      <span>DV = Doelpunten voor</span>
+      <span>DT = Doelpunten tegen</span>
+      <span>DS = Doelsaldo</span>
+      <span>Ptn = Punten</span>
+    </div>
+
+    <!-- Stand tabel -->
+    <div id="stand-tabel-wrapper" class="stand-tabel-wrapper">
+      <div style="padding:20px">
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+        <div class="skeleton skeleton-rij"></div>
+      </div>
+    </div>
+
+    <!-- Kleur legenda -->
+    <div class="glass-kaart mt-16" style="padding:14px 18px;margin-top:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--inkt-zacht)">
+        <div style="width:12px;height:12px;border-radius:3px;background:rgba(26,107,56,0.18);flex-shrink:0"></div>
+        <span>Gemarkeerde rij = ASC Nieuwland 3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab-nieuw" title="Team toevoegen">＋</button>
+
+  <!-- Stand modal -->
+  <div class="modal-overlay" id="stand-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel" id="stand-modal-titel">Team toevoegen</div>
+        <button class="modal-sluiten" id="stand-modal-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud">
+
+        <div class="formulier-groep">
+          <label class="formulier-label" for="stand-form-team">Teamnaam</label>
+          <input type="text" id="stand-form-team" class="formulier-input" placeholder="bijv. ASC Nieuwland 3" autocomplete="off">
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-gespeeld">Gesp.</label>
+            <input type="number" id="stand-form-gespeeld" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-gewonnen">W</label>
+            <input type="number" id="stand-form-gewonnen" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-gelijk">G</label>
+            <input type="number" id="stand-form-gelijk" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-verloren">V</label>
+            <input type="number" id="stand-form-verloren" class="formulier-input" value="0" min="0">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-goals_voor">DV</label>
+            <input type="number" id="stand-form-goals_voor" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-goals_tegen">DT</label>
+            <input type="number" id="stand-form-goals_tegen" class="formulier-input" value="0" min="0">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="stand-form-punten">Ptn</label>
+            <input type="number" id="stand-form-punten" class="formulier-input" value="0" min="0">
+          </div>
+        </div>
+
+        <div style="font-size:12px;color:var(--inkt-zacht);margin-top:8px">
+          💡 Punten worden automatisch berekend (W×3 + G) als je W en G invult.
+        </div>
+
+        <div class="pin-fout" id="stand-form-fout" style="font-size:13px;min-height:18px;margin-top:8px;margin-bottom:8px"></div>
+      </div>
+      <div class="modal-voet">
+        <button class="btn btn-primair w-full" id="stand-opslaan-btn">Opslaan</button>
+        <button class="btn btn-gevaar" id="stand-verwijder-btn" style="display:none;flex-shrink:0">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>controleerAuth();</script>
+  <script src="js/nav.js"></script>
+  <script src="js/stand.js"></script>
+</body>
+</html>

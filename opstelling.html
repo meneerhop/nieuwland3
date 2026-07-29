@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1a6b38">
+  <title>Opstelling — ASC Nieuwland 3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Extra stijlen voor kiezermodal */
+    .kiezer-optie {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+    }
+    .kiezer-optie:active { transform: scale(0.97); }
+    .kiezer-optie.stijl-actief {
+      border-color: var(--groen);
+      background: rgba(26,107,56,0.08);
+    }
+    #kiezer-spelers-lijst {
+      max-height: 55vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="pagina-header">
+      <div>
+        <div class="pagina-titel">Opstelling</div>
+        <div class="pagina-ondertitel">Formatie & spelerposities</div>
+      </div>
+    </div>
+
+    <!-- Wedstrijd selector -->
+    <div class="formulier-groep">
+      <label class="formulier-label" for="wedstrijd-selector">Selecteer wedstrijd</label>
+      <select id="wedstrijd-selector" class="formulier-select">
+        <option value="">Laden…</option>
+      </select>
+    </div>
+
+    <!-- Formatie kiezer -->
+    <div class="sectie-label">Formatie</div>
+    <div class="formatie-kiezer">
+      <button class="formatie-pill actief" data-formatie="4-3-3">4-3-3</button>
+      <button class="formatie-pill" data-formatie="4-4-2">4-4-2</button>
+      <button class="formatie-pill" data-formatie="4-2-3-1">4-2-3-1</button>
+      <button class="formatie-pill" data-formatie="3-5-2">3-5-2</button>
+    </div>
+
+    <!-- Instructie -->
+    <div style="font-size:13px;color:var(--inkt-zacht);margin:8px 0 4px;display:flex;align-items:center;gap:6px">
+      <span>👆</span> Tik op een positie om een speler te kiezen
+    </div>
+
+    <!-- Voetbalveld -->
+    <div class="veld-container" id="veld-container">
+      <!-- Wordt gevuld door opstelling.js -->
+    </div>
+
+    <!-- Opslaan knop -->
+    <button class="btn btn-primair w-full mt-12" id="opslaan-btn">Opstelling opslaan</button>
+
+    <!-- Uitleg legend -->
+    <div class="glass-kaart mt-16" style="padding:16px 20px;margin-bottom:20px">
+      <div class="sectie-label" style="margin:0 0 10px">Legenda posities</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--inkt-zacht)">
+        <div>GK = Keeper</div>
+        <div>DEF = Verdediger</div>
+        <div>MID = Middenvelder</div>
+        <div>AAN = Aanvaller</div>
+        <div>V = Vleugelback</div>
+        <div>DM = Defensieve MF</div>
+        <div>SP = Spits</div>
+        <div>WB = Wingback</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speler kiezer modal -->
+  <div class="modal-overlay" id="speler-kiezer-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel">Kies speler</div>
+        <button class="modal-sluiten" id="kiezer-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud" style="padding-top:12px">
+        <div id="kiezer-spelers-lijst">
+          <!-- Wordt gevuld door JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>controleerAuth();</script>
+  <script src="js/nav.js"></script>
+  <script src="js/opstelling.js"></script>
+</body>
+</html>
