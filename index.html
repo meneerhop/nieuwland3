@@ -5,282 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#002E5F">
-  <title>ASC Nieuwland 3</title>
+  <title>Dashboard — ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    body {
-      padding-bottom: 0;
-      background-attachment: fixed;
-    }
-
-    .thuis-scherm {
-      height: 100svh;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 14px 16px;
-      padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-      padding-top: calc(14px + env(safe-area-inset-top, 0px));
-      max-width: 600px;
-      margin: 0 auto;
-      box-sizing: border-box;
-    }
-
-    /* ── Header ── */
-    .thuis-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 14px;
-      flex-shrink: 0;
-    }
-
-    .thuis-header-links {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .thuis-logo {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    .thuis-teamnaam {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--blauw);
-      letter-spacing: -0.3px;
-      line-height: 1.1;
-    }
-
-    .thuis-datum {
-      font-size: 11.5px;
-      color: var(--inkt-zacht);
-      margin-top: 1px;
-    }
-
-    .thuis-uitlog {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(10,15,26,0.06);
-      border: 1px solid var(--lijn);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.15s;
-    }
-    .thuis-uitlog:active { background: rgba(189,43,11,0.12); }
-
-    /* ── Wedstrijd widget ── */
-    .thuis-widget {
-      flex-shrink: 0;
-      padding: 14px 16px;
-    }
-
-    .widget-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.7px;
-      text-transform: uppercase;
-      color: var(--inkt-zacht);
-      margin-bottom: 6px;
-    }
-
-    .widget-wedstrijd-naam {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--inkt);
-      letter-spacing: -0.3px;
-      line-height: 1.15;
-    }
-
-    .widget-wedstrijd-rij {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-    }
-
-    .widget-wedstrijd-info {
-      font-size: 12px;
-      color: var(--inkt-zacht);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .widget-dagen {
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--blauw);
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .widget-dagen-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--inkt-zacht);
-      letter-spacing: 0.3px;
-      margin-top: 1px;
-    }
-
-    /* ── Stats ── */
-    .thuis-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .thuis-stat {
-      background: var(--glas);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border: 1px solid var(--glas-rand);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--schaduw);
-      padding: 10px 8px;
-      text-align: center;
-    }
-
-    .thuis-stat-getal {
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--blauw);
-      line-height: 1;
-    }
-
-    .thuis-stat-label {
-      font-size: 9.5px;
-      font-weight: 600;
-      color: var(--inkt-zacht);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-top: 3px;
-    }
-
-    /* ── App icon grid ── */
-    .thuis-iconen {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-content: center;
-      gap: 18px 0;
-      padding: 0 4px;
-      min-height: 0;
-    }
-
-    .app-icoon {
-      width: 20%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      -webkit-tap-highlight-color: transparent;
-      cursor: pointer;
-    }
-
-    .app-icoon:active .app-icoon-face {
-      transform: scale(0.88);
-      opacity: 0.80;
-    }
-
-    .app-icoon-face {
-      width: 60px;
-      height: 60px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 29px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.28);
-      transition: transform 0.14s ease, opacity 0.14s ease;
-    }
-
-    .app-icoon-naam {
-      font-size: 10.5px;
-      font-weight: 500;
-      color: var(--inkt);
-      text-align: center;
-      line-height: 1.2;
-      max-width: 68px;
-    }
-
-    /* ── Skeleton in widget ── */
-    .widget-skel-naam  { height: 22px; border-radius: 8px; margin-bottom: 8px; }
-    .widget-skel-info  { height: 14px; border-radius: 6px; width: 60%; }
-    .widget-skel-getal { height: 36px; width: 60px; border-radius: 10px; }
-  </style>
 </head>
 <body>
-  <div class="thuis-scherm">
+  <div class="wrap">
 
     <!-- Header -->
-    <div class="glass-kaart thuis-header">
-      <div class="thuis-header-links">
-        <img class="thuis-logo" src="img/logo.png" alt="ASC Nieuwland" />
+    <div class="pagina-header">
+      <div>
+        <div class="pagina-titel">Dashboard</div>
+        <div class="pagina-ondertitel" id="dash-datum">Laden…</div>
+      </div>
+      <button class="btn btn-glas btn-sm" id="uitlog-btn" title="Uitloggen">🔒 Uitloggen</button>
+    </div>
+
+    <!-- Team header kaart -->
+    <div class="glass-kaart dash-header">
+      <div class="dash-header-rij">
         <div>
-          <div class="thuis-teamnaam">ASC Nieuwland 3</div>
-          <div class="thuis-datum" id="thuis-datum">Laden…</div>
+          <div class="dash-team-naam">ASC Nieuwland 3</div>
+          <div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">Seizoen 2024/2025 · Zondag amateurs</div>
         </div>
-      </div>
-      <button class="thuis-uitlog" id="uitlog-btn" title="Uitloggen">🔒</button>
-    </div>
-
-    <!-- Volgende wedstrijd widget -->
-    <div class="glass-kaart thuis-widget" id="volgende-wedstrijd">
-      <div class="widget-label">Volgende wedstrijd</div>
-      <div class="skeleton widget-skel-naam"></div>
-      <div class="widget-wedstrijd-rij">
-        <div class="skeleton widget-skel-info"></div>
-        <div class="skeleton widget-skel-getal"></div>
+        <div class="dash-badge"><img src="img/logo.png" alt="ASC Nieuwland" /></div>
       </div>
     </div>
 
-    <!-- Stats row -->
-    <div class="thuis-stats" id="snelle-stats">
-      <div class="thuis-stat"><div class="skeleton" style="height:28px;width:36px;margin:0 auto 4px;border-radius:8px"></div><div class="skeleton" style="height:9px;width:48px;margin:0 auto;border-radius:4px"></div></div>
-      <div class="thuis-stat"><div class="skeleton" style="height:28px;width:36px;margin:0 auto 4px;border-radius:8px"></div><div class="skeleton" style="height:9px;width:48px;margin:0 auto;border-radius:4px"></div></div>
-      <div class="thuis-stat"><div class="skeleton" style="height:28px;width:36px;margin:0 auto 4px;border-radius:8px"></div><div class="skeleton" style="height:9px;width:48px;margin:0 auto;border-radius:4px"></div></div>
+    <!-- Snelle stats -->
+    <div class="sectie-label">Seizoensoverzicht</div>
+    <div class="stat-rij" id="snelle-stats">
+      <div class="stat-pill"><div class="skeleton" style="height:32px;width:40px;margin:0 auto 8px"></div><div class="skeleton" style="height:10px;width:60px;margin:0 auto"></div></div>
+      <div class="stat-pill"><div class="skeleton" style="height:32px;width:40px;margin:0 auto 8px"></div><div class="skeleton" style="height:10px;width:60px;margin:0 auto"></div></div>
+      <div class="stat-pill"><div class="skeleton" style="height:32px;width:40px;margin:0 auto 8px"></div><div class="skeleton" style="height:10px;width:60px;margin:0 auto"></div></div>
     </div>
 
-    <!-- App icon grid -->
-    <div class="thuis-iconen">
-      <a href="wedstrijden.html" class="app-icoon">
-        <div class="app-icoon-face" style="background:linear-gradient(145deg,#1565C0,#002E5F)">⚽</div>
-        <span class="app-icoon-naam">Wedstrijden</span>
+    <!-- Volgende wedstrijd -->
+    <div class="sectie-label">Volgende wedstrijd</div>
+    <div class="glass-kaart" id="volgende-wedstrijd">
+      <div class="skeleton skeleton-kaart" style="margin:0;height:120px;border-radius:22px"></div>
+    </div>
+
+    <!-- Laatste uitslag -->
+    <div class="sectie-label">Laatste uitslag</div>
+    <div class="glass-kaart" id="laatste-uitslag">
+      <div class="skeleton skeleton-kaart" style="margin:0;height:100px;border-radius:22px"></div>
+    </div>
+
+    <!-- Stand positie -->
+    <div class="sectie-label">Klassering</div>
+    <div class="glass-kaart" id="stand-positie">
+      <div class="skeleton skeleton-kaart" style="margin:0;height:80px;border-radius:22px"></div>
+    </div>
+
+    <!-- Volgende training -->
+    <div class="sectie-label">Volgende training</div>
+    <div class="glass-kaart" id="volgende-training">
+      <div class="skeleton skeleton-kaart" style="margin:0;height:80px;border-radius:22px"></div>
+    </div>
+
+    <!-- Snelkoppelingen -->
+    <div class="sectie-label">Ga naar</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <a href="wedstrijden.html" class="glass-kaart klikbaar" style="padding:18px;display:flex;align-items:center;gap:12px;text-decoration:none">
+        <span style="font-size:28px">⚽</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--inkt)">Wedstrijden</div>
+          <div style="font-size:12px;color:var(--inkt-zacht)">Agenda & uitslagen</div>
+        </div>
       </a>
-      <a href="spelers.html" class="app-icoon">
-        <div class="app-icoon-face" style="background:linear-gradient(145deg,#283593,#1a237e)">👥</div>
-        <span class="app-icoon-naam">Spelers</span>
+      <a href="spelers.html" class="glass-kaart klikbaar" style="padding:18px;display:flex;align-items:center;gap:12px;text-decoration:none">
+        <span style="font-size:28px">👥</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--inkt)">Spelers</div>
+          <div style="font-size:12px;color:var(--inkt-zacht)">Selectie & stats</div>
+        </div>
       </a>
-      <a href="opstelling.html" class="app-icoon">
-        <div class="app-icoon-face" style="background:linear-gradient(145deg,#0277bd,#01579b)">📋</div>
-        <span class="app-icoon-naam">Opstelling</span>
+      <a href="opstelling.html" class="glass-kaart klikbaar" style="padding:18px;display:flex;align-items:center;gap:12px;text-decoration:none">
+        <span style="font-size:28px">📋</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--inkt)">Opstelling</div>
+          <div style="font-size:12px;color:var(--inkt-zacht)">Formatie & veld</div>
+        </div>
       </a>
-      <a href="training.html" class="app-icoon">
-        <div class="app-icoon-face" style="background:linear-gradient(145deg,#388e3c,#1b5e20)">🏃</div>
-        <span class="app-icoon-naam">Training</span>
-      </a>
-      <a href="stand.html" class="app-icoon">
-        <div class="app-icoon-face" style="background:linear-gradient(145deg,#e53935,#BD2B0B)">📊</div>
-        <span class="app-icoon-naam">Stand</span>
+      <a href="training.html" class="glass-kaart klikbaar" style="padding:18px;display:flex;align-items:center;gap:12px;text-decoration:none">
+        <span style="font-size:28px">🏃</span>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--inkt)">Training</div>
+          <div style="font-size:12px;color:var(--inkt-zacht)">Sessies & aanwezigheid</div>
+        </div>
       </a>
     </div>
 
@@ -292,13 +105,6 @@
   <script src="js/nav.js"></script>
   <script src="js/dashboard.js"></script>
   <script>
-    // Datum in header
-    const datumEl = document.getElementById("thuis-datum");
-    if (datumEl) {
-      datumEl.textContent = new Date().toLocaleDateString("nl-NL", {
-        weekday: "long", day: "numeric", month: "long"
-      });
-    }
     document.getElementById("uitlog-btn").addEventListener("click", logUit);
   </script>
 </body>
