@@ -83,25 +83,20 @@ async function laadVolgendeWedstrijd() {
     });
 
     container.innerHTML = `
-      <div class="volgende-wedstrijd">
-        <div class="flex-between">
-          <div>
-            <div class="sectie-label" style="margin:0 0 4px">Volgende wedstrijd</div>
-            <div class="tegenstander">${TEAM_NAAM}<br>vs ${escapeHtml(w.tegenstander)}</div>
-          </div>
-          <div style="text-align:center">
-            ${dag > 0
-              ? `<div class="countdown">${dag}</div><div class="countdown-label">dag${dag === 1 ? "" : "en"}</div>`
-              : dag === 0
-              ? `<div class="countdown" style="font-size:22px">Vandaag!</div>`
-              : `<div class="countdown" style="font-size:22px">Nu!</div>`}
-          </div>
-        </div>
-        <div class="flex flex-gap-8" style="margin-top:8px;flex-wrap:wrap">
+      <div class="widget-label">Volgende wedstrijd</div>
+      <div class="widget-wedstrijd-naam">vs ${escapeHtml(w.tegenstander)}</div>
+      <div class="widget-wedstrijd-rij">
+        <div class="widget-wedstrijd-info">
           ${thuis_uit_badge(w.thuis_uit)}
-          <span class="badge badge-wit">📅 ${datumStr}</span>
-          <span class="badge badge-wit">🕐 ${tijdStr}</span>
-          ${w.locatie ? `<span class="badge badge-wit">📍 ${escapeHtml(w.locatie)}</span>` : ""}
+          <span>📅 ${datumStr} · ${tijdStr}</span>
+          ${w.locatie ? `<span>📍 ${escapeHtml(w.locatie)}</span>` : ""}
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          ${dag > 0
+            ? `<div class="widget-dagen">${dag}</div><div class="widget-dagen-label">dag${dag === 1 ? "" : "en"}</div>`
+            : dag === 0
+            ? `<div class="widget-dagen" style="font-size:20px">Vandaag</div>`
+            : `<div class="widget-dagen" style="font-size:20px">Nu!</div>`}
         </div>
       </div>`;
   } catch (e) {
@@ -172,23 +167,23 @@ async function laadStats() {
     }, 0);
 
     container.innerHTML = `
-      <div class="stat-pill">
-        <div class="stat-getal">${doelpunten}</div>
-        <div class="stat-label">Doelpunten</div>
+      <div class="thuis-stat">
+        <div class="thuis-stat-getal">${doelpunten}</div>
+        <div class="thuis-stat-label">Doelpunten</div>
       </div>
-      <div class="stat-pill">
-        <div class="stat-getal">${gespeeld.length}</div>
-        <div class="stat-label">Gespeeld</div>
+      <div class="thuis-stat">
+        <div class="thuis-stat-getal">${gespeeld.length}</div>
+        <div class="thuis-stat-label">Gespeeld</div>
       </div>
-      <div class="stat-pill">
-        <div class="stat-getal">${gewonnen}</div>
-        <div class="stat-label">Gewonnen</div>
+      <div class="thuis-stat">
+        <div class="thuis-stat-getal">${gewonnen}</div>
+        <div class="thuis-stat-label">Gewonnen</div>
       </div>`;
   } catch (e) {
     container.innerHTML = `
-      <div class="stat-pill"><div class="stat-getal">–</div><div class="stat-label">Doelpunten</div></div>
-      <div class="stat-pill"><div class="stat-getal">–</div><div class="stat-label">Gespeeld</div></div>
-      <div class="stat-pill"><div class="stat-getal">–</div><div class="stat-label">Gewonnen</div></div>`;
+      <div class="thuis-stat"><div class="thuis-stat-getal">–</div><div class="thuis-stat-label">Doelpunten</div></div>
+      <div class="thuis-stat"><div class="thuis-stat-getal">–</div><div class="thuis-stat-label">Gespeeld</div></div>
+      <div class="thuis-stat"><div class="thuis-stat-getal">–</div><div class="thuis-stat-label">Gewonnen</div></div>`;
   }
 }
 
