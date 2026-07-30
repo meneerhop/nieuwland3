@@ -99,7 +99,8 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .keypad-toets:active {
+    .keypad-toets:active,
+    .keypad-toets.gedrukt {
       background: rgba(0,46,95,0.18);
       transform: scale(0.92);
     }
@@ -264,6 +265,12 @@
       updateDots();
       document.getElementById("pin-fout").textContent = "";
     }
+
+    document.querySelectorAll(".keypad-toets").forEach(btn => {
+      btn.addEventListener("touchstart",  () => btn.classList.add("gedrukt"),    { passive: true });
+      btn.addEventListener("touchend",    () => btn.classList.remove("gedrukt"), { passive: true });
+      btn.addEventListener("touchcancel", () => btn.classList.remove("gedrukt"), { passive: true });
+    });
 
     document.querySelectorAll(".keypad-toets[data-cijfer]").forEach(btn => {
       btn.addEventListener("click", () => verwerkCijfer(btn.dataset.cijfer));

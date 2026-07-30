@@ -12,6 +12,19 @@ function sportlinkFetch(endpoint, params) {
     });
 }
 
+function supaFetch(pad, params) {
+  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+  return fetch(SUPABASE_URL + pad + query, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+    },
+  }).then(function (r) {
+    if (!r.ok) throw new Error("Netwerkfout " + r.status);
+    return r.json();
+  });
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -127,17 +140,19 @@ async function laadWedstrijden() {
   }).join("");
 
   try {
-    const [programma, uitslag] = await Promise.all([
+    const [r0, r1, r2] = await Promise.allSettled([
       sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
       sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+      supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
     ]);
 
-    console.log("Sportlink programma:", programma);
-    console.log("Sportlink uitslag:", uitslag);
+    const programma   = r0.status === "fulfilled" ? r0.value : [];
+    const uitslag     = r1.status === "fulfilled" ? r1.value : [];
+    const handmatig   = r2.status === "fulfilled" ? r2.value : [];
 
     const gepland  = (programma || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gepland"); });
     const gespeeld = (uitslag   || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
-    alleWedstrijden = gepland.concat(gespeeld);
+    alleWedstrijden  = gepland.concat(gespeeld).concat(handmatig || []);
     renderWedstrijden();
   } catch (e) {
     container.innerHTML = `
