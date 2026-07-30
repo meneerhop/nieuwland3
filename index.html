@@ -8,6 +8,7 @@
   <title>Dashboard — ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <div class="wrap">
@@ -63,6 +64,13 @@
       <div class="skeleton skeleton-kaart" style="margin:0;height:80px;border-radius:22px"></div>
     </div>
 
+    <!-- Mededelingen -->
+    <div class="sectie-label">Mededelingen</div>
+    <div class="glass-kaart" id="mededelingen-sectie" style="margin-bottom:16px">
+      <div class="skeleton" style="height:14px;width:85%;margin:14px 20px 10px"></div>
+      <div class="skeleton" style="height:14px;width:60%;margin:0 20px 14px"></div>
+    </div>
+
     <!-- Snelkoppelingen -->
     <div class="sectie-label">Ga naar</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
@@ -101,6 +109,34 @@
       <button id="uitlog-btn" class="btn btn-glas" style="width:100%;justify-content:center">🔒 Uitloggen</button>
     </div>
 
+  </div>
+
+  <!-- FAB mededeling -->
+  <button class="fab" id="mededeling-fab" title="Mededeling plaatsen">📢</button>
+
+  <!-- Mededeling modal -->
+  <div class="modal-overlay" id="mededeling-modal">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel">Mededeling plaatsen</div>
+        <button class="modal-sluiten" id="mededeling-modal-sluiten">✕</button>
+      </div>
+      <div class="modal-inhoud">
+        <div class="formulier-groep">
+          <label class="formulier-label" for="mededeling-tekst-input">Bericht</label>
+          <textarea id="mededeling-tekst-input" class="formulier-textarea" style="min-height:100px" placeholder="Typ hier je mededeling…"></textarea>
+        </div>
+        <div class="formulier-groep">
+          <label class="formulier-label" for="mededeling-auteur-input">Van (optioneel)</label>
+          <input type="text" id="mededeling-auteur-input" class="formulier-input" placeholder="bijv. Coach Jan" autocomplete="off">
+        </div>
+        <div class="pin-fout" id="mededeling-fout" style="font-size:13px;min-height:16px"></div>
+      </div>
+      <div class="modal-voet">
+        <button class="btn btn-primair w-full" id="mededeling-opslaan-btn">Plaatsen</button>
+      </div>
+    </div>
   </div>
 
   <script src="js/config.js"></script>

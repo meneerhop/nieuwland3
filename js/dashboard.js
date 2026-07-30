@@ -196,7 +196,7 @@ function renderStats(stand, uitslag) {
 
   // Gebruik ons team-rij uit de stand voor de snelle stats
   const eigenRij = (stand || []).find(function (r) {
-    return isEigenTeam(r.teamnaam || r.team);
+    return isOnsTeam(r.teamnaam || r.team);
   });
 
   let doelpunten, gespeeld, gewonnen;
@@ -237,7 +237,7 @@ function renderStandPositie(stand) {
     return;
   }
 
-  const idx     = stand.findIndex(function (r) { return isEigenTeam(r.teamnaam || r.team); });
+  const idx     = stand.findIndex(function (r) { return isOnsTeam(r.teamnaam || r.team); });
   const positie = idx === -1 ? "–" : (stand[idx].positie ?? idx + 1);
   const rij     = idx === -1 ? null : stand[idx];
 
@@ -252,6 +252,78 @@ function renderStandPositie(stand) {
         </div>` : ""}
       </div>
     </div>`;
+}
+
+/* ── Mededelingen ────────────────────────────────────────────── */
+async function laadMededelingen() {
+  const container = document.getElementById("mededelingen-sectie");
+  if (!container) return;
+
+  try {
+    const data = await supaFetch("mededelingen", {
+      select: "*",
+      order: "vastgezet.desc,created_at.desc",
+      limit: "10",
+    });
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="padding:14px 20px;color:var(--inkt-zacht);font-size:14px">Geen mededelingen</div>';
+      return;
+    }
+
+    container.innerHTML = data.map(function (m) {
+      const dt = new Date(m.created_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      return `
+        <div class="mededeling-item">
+          ${m.vastgezet ? '<div class="mededeling-vastgezet">📌 Vastgezet</div>' : ""}
+          <div class="mededeling-tekst">${escapeHtml(m.tekst)}</div>
+          <div class="mededeling-meta">${m.auteur ? escapeHtml(m.auteur) + " · " : ""}${dt}</div>
+        </div>`;
+    }).join("");
+  } catch (e) {
+    container.innerHTML = '<div style="padding:14px 20px;color:var(--inkt-zacht);font-size:14px">Kon mededelingen niet laden</div>';
+  }
+}
+
+function openMededelingModal() {
+  document.getElementById("mededeling-modal").classList.add("open");
+  document.getElementById("mededeling-tekst-input").value = "";
+  document.getElementById("mededeling-auteur-input").value = "";
+  document.getElementById("mededeling-fout").textContent = "";
+}
+
+function sluitMededelingModal() {
+  document.getElementById("mededeling-modal").classList.remove("open");
+}
+
+async function slaaMededelingOp() {
+  const tekst = document.getElementById("mededeling-tekst-input").value.trim();
+  if (!tekst) { document.getElementById("mededeling-fout").textContent = "Vul een bericht in."; return; }
+
+  const btn = document.getElementById("mededeling-opslaan-btn");
+  btn.textContent = "Opslaan…"; btn.disabled = true;
+
+  try {
+    await fetch(SUPABASE_URL + "mededelingen", {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        tekst: tekst,
+        auteur: document.getElementById("mededeling-auteur-input").value.trim() || null,
+      }),
+    });
+    sluitMededelingModal();
+    laadMededelingen();
+  } catch (e) {
+    document.getElementById("mededeling-fout").textContent = "Opslaan mislukt.";
+  } finally {
+    btn.textContent = "Plaatsen"; btn.disabled = false;
+  }
 }
 
 /* ── Volgende training (Supabase) ───────────────────────────── */
@@ -330,6 +402,19 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   laadVolgendeTraining();
+  laadMededelingen();
+
+  const medFab = document.getElementById("mededeling-fab");
+  if (medFab) medFab.addEventListener("click", openMededelingModal);
+
+  const medOverlay = document.getElementById("mededeling-modal");
+  if (medOverlay) medOverlay.addEventListener("click", function (e) { if (e.target === medOverlay) sluitMededelingModal(); });
+
+  const medSluiten = document.getElementById("mededeling-modal-sluiten");
+  if (medSluiten) medSluiten.addEventListener("click", sluitMededelingModal);
+
+  const medOpslaan = document.getElementById("mededeling-opslaan-btn");
+  if (medOpslaan) medOpslaan.addEventListener("click", slaaMededelingOp);
 
   const uitlogBtn = document.getElementById("uitlog-btn");
   if (uitlogBtn) uitlogBtn.addEventListener("click", logUit);

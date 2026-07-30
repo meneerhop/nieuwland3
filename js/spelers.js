@@ -100,11 +100,45 @@ function fotoHtml(speler, groot) {
   return `<div class="${groot ? "speler-detail-foto" : "speler-foto-placeholder"}" style="${groot ? "display:flex;align-items:center;justify-content:center;background:var(--groen-zacht);border-radius:50%;font-size:32px" : ""}">${emoji}</div>`;
 }
 
+function statusBadge(status) {
+  if (!status || status === "beschikbaar") return "";
+  if (status === "geblesseerd") return '<span class="badge badge-geblesseerd">🩹 Geblesseerd</span>';
+  if (status === "afwezig")     return '<span class="badge badge-afwezig">Afwezig</span>';
+  return `<span class="badge badge-grijs">${escapeHtml(status)}</span>`;
+}
+
 /* ── State ──────────────────────────────────────────────────── */
 let alleSpelers  = [];
 let huidigSpeler = null;
 let bewerkSpeler = null;
 let zoekterm     = "";
+
+/* ── Top scorers ────────────────────────────────────────────── */
+function renderTopScorers() {
+  const el = document.getElementById("top-scorers");
+  if (!el) return;
+
+  const metDoelpunten = alleSpelers.filter(function (s) { return (s.goals || 0) > 0; })
+    .sort(function (a, b) { return (b.goals || 0) - (a.goals || 0); })
+    .slice(0, 5);
+
+  if (metDoelpunten.length === 0) {
+    el.innerHTML = '<div style="padding:12px 20px;font-size:13px;color:var(--inkt-zacht)">Nog geen doelpunten geregistreerd</div>';
+    return;
+  }
+
+  const medals = ["🥇","🥈","🥉","4.","5."];
+  el.innerHTML = metDoelpunten.map(function (s, i) {
+    return `<div class="top-scorer-item">
+      <div class="top-scorer-rang">${medals[i]}</div>
+      <div class="top-scorer-naam">${escapeHtml(s.naam.split(" ")[0])}${s.aanvoerder ? " 🎽" : ""}</div>
+      <div>
+        <div class="top-scorer-getal">${s.goals}</div>
+        <div class="top-scorer-label">doelp.</div>
+      </div>
+    </div>`;
+  }).join("");
+}
 
 /* ── Render ─────────────────────────────────────────────────── */
 function renderSpelers() {
@@ -134,13 +168,17 @@ function renderSpelers() {
   }
 
   container.innerHTML = lijst.map(function (s) {
+    const isDimmed = s.status === "geblesseerd" || s.status === "afwezig";
     return `
-      <div class="glass-kaart speler-kaart klikbaar" data-id="${s.id}">
+      <div class="glass-kaart speler-kaart klikbaar" data-id="${s.id}" style="${isDimmed ? "opacity:0.60" : ""}">
         <div>
           <div class="speler-rugnummer">${s.rugnummer || ""}</div>
           ${fotoHtml(s, false)}
-          <div class="speler-naam">${escapeHtml(s.naam)}</div>
-          ${positieBadge(s.positie)}
+          <div class="speler-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' <span style="font-size:14px">🎽</span>' : ""}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+            ${positieBadge(s.positie)}
+            ${statusBadge(s.status)}
+          </div>
         </div>
         <div class="speler-stats">
           <span class="speler-stat">⚽ ${s.goals || 0}</span>
@@ -168,8 +206,12 @@ function openDetail(id) {
     <div class="speler-detail">
       ${fotoHtml(s, true)}
       <div>
-        <div class="speler-detail-naam">${escapeHtml(s.naam)}</div>
-        <div style="margin-top:6px">${positieBadge(s.positie)}</div>
+        <div class="speler-detail-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' 🎽' : ""}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          ${positieBadge(s.positie)}
+          ${statusBadge(s.status)}
+          ${s.aanvoerder ? '<span class="badge badge-aanvoerder">Aanvoerder</span>' : ""}
+        </div>
         ${s.rugnummer ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:6px">Rugnummer #${s.rugnummer}</div>` : ""}
       </div>
     </div>
@@ -230,6 +272,10 @@ function vulFormulier(s) {
   document.getElementById("form-rode_kaarten").value       = s ? s.rode_kaarten || 0 : 0;
   document.getElementById("form-wedstrijden_gespeeld").value = s ? s.wedstrijden_gespeeld || 0 : 0;
   document.getElementById("form-biografie").value          = s ? s.biografie || "" : "";
+  const aanv = document.getElementById("form-aanvoerder");
+  if (aanv) aanv.checked = s ? !!s.aanvoerder : false;
+  const stat = document.getElementById("form-status");
+  if (stat) stat.value = s ? (s.status || "beschikbaar") : "beschikbaar";
   document.getElementById("form-speler-fout").textContent  = "";
 }
 
@@ -244,10 +290,12 @@ async function slaSpelerOp() {
   const naam = document.getElementById("form-naam").value.trim();
   if (!naam) { foutEl.textContent = "Vul een naam in."; return; }
 
+  const aanvEl = document.getElementById("form-aanvoerder");
+  const statEl = document.getElementById("form-status");
   const payload = {
     naam:                 naam,
     rugnummer:            parseInt(document.getElementById("form-rugnummer").value) || null,
-    positie:              document.getElementById("form-positie").value,
+    positie:              document.getElementById("form-positie").value.trim() || null,
     foto_url:             document.getElementById("form-foto_url").value.trim() || null,
     goals:                parseInt(document.getElementById("form-goals").value) || 0,
     assists:              parseInt(document.getElementById("form-assists").value) || 0,
@@ -255,6 +303,8 @@ async function slaSpelerOp() {
     rode_kaarten:         parseInt(document.getElementById("form-rode_kaarten").value) || 0,
     wedstrijden_gespeeld: parseInt(document.getElementById("form-wedstrijden_gespeeld").value) || 0,
     biografie:            document.getElementById("form-biografie").value.trim() || null,
+    aanvoerder:           aanvEl ? aanvEl.checked : false,
+    status:               statEl ? statEl.value : "beschikbaar",
   };
 
   const btn = document.getElementById("form-opslaan-btn");
@@ -302,6 +352,7 @@ async function laadSpelers() {
     const data = await supaFetch("spelers", { select: "*", order: "rugnummer.asc" });
     alleSpelers = data || [];
     renderSpelers();
+    renderTopScorers();
   } catch (e) {
     container.innerHTML = `
       <div class="leeg-staat" style="grid-column:1/-1">

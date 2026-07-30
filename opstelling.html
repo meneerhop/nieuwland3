@@ -8,6 +8,7 @@
   <title>Opstelling — ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
   <style>
     /* Extra stijlen voor kiezermodal */
     .kiezer-optie {
@@ -64,6 +65,14 @@
     <!-- Voetbalveld -->
     <div class="veld-container" id="veld-container">
       <!-- Wordt gevuld door opstelling.js -->
+    </div>
+
+    <!-- Wisselspelers -->
+    <div class="sectie-label">Wisselspelers (bank)</div>
+    <div class="glass-kaart" style="padding:4px 16px 12px;overflow:hidden;background:repeating-linear-gradient(to bottom,#2d7a3e 0px,#2d7a3e 24px,#2a7240 24px,#2a7240 48px);border-radius:var(--radius)">
+      <div class="bank-sectie" id="bank-container">
+        <!-- Wordt gevuld door opstelling.js -->
+      </div>
     </div>
 
     <!-- Opslaan knop -->

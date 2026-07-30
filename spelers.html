@@ -8,6 +8,7 @@
   <title>Spelers — ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <div class="wrap">
@@ -30,7 +31,14 @@
         autocomplete="off">
     </div>
 
+    <!-- Top scorers -->
+    <div class="sectie-label">Top scorers</div>
+    <div class="glass-kaart" id="top-scorers" style="margin-bottom:16px">
+      <div class="skeleton" style="height:40px;margin:12px 20px;border-radius:8px"></div>
+    </div>
+
     <!-- Spelers grid -->
+    <div class="sectie-label">Selectie</div>
     <div class="spelers-grid" id="spelers-grid">
       <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
       <div class="skeleton" style="min-height:140px;border-radius:22px"></div>
@@ -92,6 +100,24 @@
             <option value="RVA">
             <option value="SP">
           </datalist>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-status">Status</label>
+            <select id="form-status" class="formulier-select">
+              <option value="beschikbaar">Beschikbaar</option>
+              <option value="geblesseerd">Geblesseerd</option>
+              <option value="afwezig">Afwezig</option>
+            </select>
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0;display:flex;flex-direction:column;justify-content:flex-end">
+            <label class="formulier-label" style="margin-bottom:10px">Aanvoerder</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--inkt);cursor:pointer">
+              <input type="checkbox" id="form-aanvoerder" style="width:18px;height:18px;accent-color:var(--blauw)">
+              🎽 Aanvoerder
+            </label>
+          </div>
         </div>
 
         <div class="formulier-groep">

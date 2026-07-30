@@ -91,9 +91,11 @@ function aanwezigNamen(aanwezig_namen) {
 }
 
 /* ── State ──────────────────────────────────────────────────── */
-let alleTrainingen = [];
-let bewerkTraining = null;
-let uitgeKlapt    = new Set();
+let alleTrainingen    = [];
+let alleSpelers       = [];
+let bewerkTraining    = null;
+let uitgeKlapt        = new Set();
+let geselecteerdeSpelers = new Set();
 
 /* ── Render ─────────────────────────────────────────────────── */
 function renderTrainingen() {
@@ -201,6 +203,40 @@ function renderTrainingen() {
   });
 }
 
+/* ── Aanwezigheid speler kiezer ─────────────────────────────── */
+function renderSpelersKiezer() {
+  const el = document.getElementById("aanwezig-kiezer");
+  if (!el) return;
+
+  if (alleSpelers.length === 0) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--inkt-zacht)">Geen spelers gevonden</div>';
+    return;
+  }
+
+  el.innerHTML = '<div class="aanwezig-grid">' +
+    alleSpelers.map(function (s) {
+      const gesel = geselecteerdeSpelers.has(s.id);
+      return `<label class="aanwezig-item${gesel ? " geselecteerd" : ""}" data-id="${s.id}">
+        <input type="checkbox" ${gesel ? "checked" : ""}>
+        ${s.rugnummer ? `<span style="font-weight:800;color:var(--inkt-zacht);font-size:11px">#${s.rugnummer}</span>` : ""}
+        ${escapeHtml(s.naam.split(" ")[0])}
+      </label>`;
+    }).join("") + '</div>';
+
+  el.querySelectorAll(".aanwezig-item").forEach(function (label) {
+    label.addEventListener("click", function () {
+      const id = parseInt(label.dataset.id);
+      if (geselecteerdeSpelers.has(id)) {
+        geselecteerdeSpelers.delete(id);
+        label.classList.remove("geselecteerd");
+      } else {
+        geselecteerdeSpelers.add(id);
+        label.classList.add("geselecteerd");
+      }
+    });
+  });
+}
+
 /* ── Laden ──────────────────────────────────────────────────── */
 async function laadTrainingen() {
   const container = document.getElementById("training-lijst");
@@ -211,8 +247,12 @@ async function laadTrainingen() {
   }).join("");
 
   try {
-    const data = await supaFetch("trainingen", { select: "*", order: "datum.desc" });
-    alleTrainingen = data || [];
+    const [trainingData, spelersData] = await Promise.all([
+      supaFetch("trainingen", { select: "*", order: "datum.desc" }),
+      supaFetch("spelers", { select: "id,naam,rugnummer", order: "rugnummer.asc" }),
+    ]);
+    alleTrainingen = trainingData || [];
+    alleSpelers = spelersData || [];
     renderTrainingen();
   } catch (e) {
     container.innerHTML = `
@@ -227,7 +267,9 @@ async function laadTrainingen() {
 /* ── Modals ─────────────────────────────────────────────────── */
 function openNieuwModal() {
   bewerkTraining = null;
+  geselecteerdeSpelers = new Set();
   vulFormulier(null);
+  renderSpelersKiezer();
   document.getElementById("training-modal-titel").textContent = "Training toevoegen";
   document.getElementById("training-verwijder-btn").style.display = "none";
   document.getElementById("training-modal").classList.add("open");
@@ -250,9 +292,19 @@ function vulFormulier(t) {
   document.getElementById("training-form-beschrijving").value = t ? t.beschrijving || "" : "";
   document.getElementById("training-form-notities").value     = t ? t.notities || "" : "";
 
-  // Aanwezig namen (komma-gescheiden)
+  // Selecteer aanwezige spelers via checkbox-kiezer
+  geselecteerdeSpelers = new Set();
   const namen = aanwezigNamen(t ? t.aanwezig_namen : null);
-  document.getElementById("training-form-aanwezig").value = namen.join(", ");
+  if (namen.length > 0) {
+    // Match op voornaam of volledige naam
+    alleSpelers.forEach(function (s) {
+      const voornaam = s.naam.split(" ")[0].toLowerCase();
+      if (namen.some(function (n) { return n.toLowerCase() === voornaam || n.toLowerCase() === s.naam.toLowerCase(); })) {
+        geselecteerdeSpelers.add(s.id);
+      }
+    });
+  }
+  renderSpelersKiezer();
 
   document.getElementById("training-form-fout").textContent = "";
 }
@@ -270,10 +322,10 @@ async function slaTrainingOp() {
   if (!titel)  { foutEl.textContent = "Vul een titel in."; return; }
   if (!datum)  { foutEl.textContent = "Kies een datum en tijd."; return; }
 
-  const aanwezigStr = document.getElementById("training-form-aanwezig").value;
-  const aanwezig_namen = aanwezigStr
-    ? aanwezigStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean)
-    : [];
+  // Aanwezige namen ophalen uit speler-checkboxes
+  const aanwezig_namen = alleSpelers
+    .filter(function (s) { return geselecteerdeSpelers.has(s.id); })
+    .map(function (s) { return s.naam; });
 
   const payload = {
     titel:         titel,

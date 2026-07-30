@@ -1,5 +1,5 @@
 /* ============================================================
-   ASC Nieuwland 3 — Hamburger navigatie
+   ASC Nieuwland 3 — Hamburger navigatie + dark mode
    ============================================================ */
 
 (function () {
@@ -14,18 +14,29 @@
 
   const huidig = location.pathname.split("/").pop() || "index.html";
 
-  // Hamburger knop
+  // ── Dark mode ──────────────────────────────────────────────
+  function isDonker() { return localStorage.getItem("nieuwland3_donker") === "1"; }
+
+  function pasDonkerToe(donker) {
+    document.body.classList.toggle("donker", donker);
+    const themeEl = document.querySelector('meta[name="theme-color"]');
+    if (themeEl) themeEl.content = donker ? "#0c1420" : (themeEl.dataset.licht || "#002E5F");
+    localStorage.setItem("nieuwland3_donker", donker ? "1" : "0");
+  }
+
+  // Apply immediately (before render) to prevent flash
+  if (isDonker()) document.body.classList.add("donker");
+
+  // ── Hamburger knop ─────────────────────────────────────────
   const btn = document.createElement("button");
   btn.className = "hamburger-btn";
   btn.setAttribute("aria-label", "Menu");
   btn.setAttribute("aria-expanded", "false");
   btn.innerHTML = '<span class="hamburger-icoon">☰</span>';
 
-  // Backdrop om buiten menu te klikken
   const backdrop = document.createElement("div");
   backdrop.className = "menu-backdrop";
 
-  // Menu panel
   const menu = document.createElement("nav");
   menu.className = "hamburger-menu";
   menu.setAttribute("aria-label", "Hoofdnavigatie");
@@ -43,12 +54,26 @@
       '<span class="menu-label">' + tab.label + "</span>" +
       (isActief ? '<span class="menu-actief-stip"></span>' : "");
 
-    if (isActief) {
-      a.addEventListener("click", sluitMenu);
-    }
-
+    if (isActief) a.addEventListener("click", sluitMenu);
     menu.appendChild(a);
   });
+
+  // Dark mode toggle
+  const donkerRij = document.createElement("button");
+  donkerRij.className = "menu-item";
+  donkerRij.style.cssText = "width:100%;text-align:left;border:none;background:none;border-top:1px solid var(--lijn);cursor:pointer";
+  function updateDonkerRij() {
+    donkerRij.innerHTML =
+      '<span class="menu-icoon">' + (isDonker() ? "☀️" : "🌙") + "</span>" +
+      '<span class="menu-label">' + (isDonker() ? "Lichte modus" : "Donkere modus") + "</span>";
+  }
+  updateDonkerRij();
+  donkerRij.addEventListener("click", function () {
+    pasDonkerToe(!isDonker());
+    updateDonkerRij();
+    sluitMenu();
+  });
+  menu.appendChild(donkerRij);
 
   function openMenu() {
     menu.classList.add("open");
@@ -73,6 +98,11 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") sluitMenu();
   });
+
+  // Register service worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js").catch(function () {});
+  }
 
   document.body.appendChild(btn);
   document.body.appendChild(backdrop);

@@ -8,6 +8,7 @@
   <title>Training — ASC Nieuwland 3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
   <div class="wrap">
@@ -55,12 +56,10 @@
         </div>
 
         <div class="formulier-groep">
-          <label class="formulier-label" for="training-form-aanwezig">Aanwezige spelers (kommagescheiden)</label>
-          <textarea
-            id="training-form-aanwezig"
-            class="formulier-textarea"
-            style="min-height:64px"
-            placeholder="Jan, Piet, Klaas, …"></textarea>
+          <label class="formulier-label">Aanwezige spelers</label>
+          <div id="aanwezig-kiezer">
+            <div style="font-size:13px;color:var(--inkt-zacht)">Laden…</div>
+          </div>
         </div>
 
         <div class="formulier-groep">

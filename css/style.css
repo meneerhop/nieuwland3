@@ -1311,3 +1311,227 @@ img { max-width: 100%; display: block; }
   .wrap { padding: 0 24px; }
   .spelers-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ── Dark Mode ──────────────────────────────────────────────── */
+body.donker {
+  --papier:        #0c1420;
+  --glas:          rgba(255,255,255,0.07);
+  --glas-rand:     rgba(255,255,255,0.13);
+  --inkt:          #e8edf4;
+  --inkt-zacht:    rgba(232,237,244,0.55);
+  --inkt-fijn:     rgba(232,237,244,0.30);
+  --lijn:          rgba(232,237,244,0.10);
+  --blauw-zacht:   rgba(100,160,255,0.18);
+  --rood-zacht:    rgba(255,100,80,0.15);
+  --schaduw:       0 2px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07);
+  --schaduw-hover: 0 6px 36px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+body.donker {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 0%,   rgba(0,46,95,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 90%,  rgba(189,43,11,0.20) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 70% at 50% 50%,  rgba(0,0,0,0.25) 0%, transparent 70%);
+}
+
+body.donker .formulier-input,
+body.donker .formulier-select,
+body.donker .formulier-textarea {
+  background: rgba(255,255,255,0.07);
+  color: var(--inkt);
+  border-color: rgba(255,255,255,0.15);
+  color-scheme: dark;
+}
+
+body.donker .formulier-input::placeholder,
+body.donker .formulier-textarea::placeholder { color: var(--inkt-zacht); }
+
+body.donker .tab-switch-item.actief { background: rgba(255,255,255,0.13); }
+
+body.donker .keypad-toets {
+  background: rgba(255,255,255,0.10);
+  color: var(--inkt);
+  border-color: rgba(255,255,255,0.12);
+}
+
+body.donker .hamburger-btn {
+  background: rgba(18,28,46,0.92);
+  border-color: rgba(255,255,255,0.12);
+}
+
+body.donker .hamburger-menu {
+  background: rgba(14,22,38,0.96);
+  border-color: rgba(255,255,255,0.12);
+}
+
+body.donker .menu-item { color: var(--inkt); border-bottom-color: rgba(255,255,255,0.07); }
+body.donker .menu-item:active { background: rgba(255,255,255,0.07); }
+
+body.donker .modal-sheet {
+  background: rgba(12,20,32,0.97);
+  border-color: rgba(255,255,255,0.10);
+}
+
+body.donker .stand-tabel thead th { background: rgba(255,255,255,0.05); }
+body.donker .stand-tabel tbody tr:hover { background: rgba(255,255,255,0.04); }
+body.donker .stand-tabel tbody tr.eigen-team { background: rgba(0,46,95,0.22); }
+
+/* ── Status & aanvoerder badges ─────────────────────────────── */
+.badge-aanvoerder  { background: rgba(200,150,0,0.16);   color: #a07000; }
+.badge-geblesseerd { background: rgba(189,43,11,0.13);   color: var(--rood); }
+.badge-afwezig     { background: rgba(10,15,26,0.10);    color: var(--inkt-zacht); }
+
+/* ── Mededelingen ───────────────────────────────────────────── */
+.mededeling-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--lijn);
+}
+.mededeling-item:last-child { border-bottom: none; }
+.mededeling-vastgezet {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--blauw); margin-bottom: 4px;
+}
+.mededeling-tekst { font-size: 15px; font-weight: 500; color: var(--inkt); line-height: 1.5; }
+.mededeling-meta { font-size: 12px; color: var(--inkt-zacht); margin-top: 5px; }
+
+/* ── Wisselspelers (bank) ───────────────────────────────────── */
+.bank-sectie {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 4px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bank-speler-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 56px;
+}
+
+.bank-cirkel {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(255,255,255,0.95);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.22), inset 0 1px 0 #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--blauw);
+  transition: transform var(--transition);
+}
+
+.bank-cirkel.leeg {
+  background: rgba(255,255,255,0.30);
+  border: 2px dashed rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.65);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.bank-naam {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.90);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  text-align: center;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bank-speler-wrap:active .bank-cirkel { transform: scale(0.90); }
+
+/* ── Beschikbaarheid ────────────────────────────────────────── */
+.beschikbaar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--lijn);
+}
+.beschikbaar-item:last-child { border-bottom: none; }
+.beschikbaar-naam { flex: 1; font-size: 15px; font-weight: 600; color: var(--inkt); }
+.beschikbaar-sub  { font-size: 11px; color: var(--inkt-zacht); }
+.beschikbaar-btns { display: flex; gap: 6px; flex-shrink: 0; }
+
+.beschikbaar-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--lijn);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  color: var(--inkt-zacht);
+}
+.beschikbaar-btn.ja.actief  { background: rgba(0,150,60,0.15); border-color: #00873a; color: #00873a; }
+.beschikbaar-btn.nee.actief { background: rgba(189,43,11,0.15); border-color: var(--rood); color: var(--rood); }
+
+/* ── Wedstrijd verslag ──────────────────────────────────────── */
+.verslag-tekst {
+  font-size: 14px;
+  color: var(--inkt);
+  line-height: 1.65;
+  padding: 14px 20px;
+  white-space: pre-wrap;
+}
+
+/* ── Top scorers ────────────────────────────────────────────── */
+.top-scorer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--lijn);
+}
+.top-scorer-item:last-child { border-bottom: none; }
+.top-scorer-rang  { font-size: 13px; font-weight: 800; color: var(--inkt-zacht); min-width: 22px; text-align: center; }
+.top-scorer-naam  { flex: 1; font-size: 14px; font-weight: 600; color: var(--inkt); }
+.top-scorer-getal { font-size: 18px; font-weight: 800; color: var(--blauw); }
+.top-scorer-label { font-size: 10px; color: var(--inkt-zacht); font-weight: 600; text-transform: uppercase; }
+
+/* ── Aanwezigheid checkboxes (training) ─────────────────────── */
+.aanwezig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.aanwezig-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--lijn);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: rgba(255,255,255,0.50);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--inkt);
+  user-select: none;
+}
+.aanwezig-item.geselecteerd {
+  background: rgba(0,46,95,0.12);
+  border-color: var(--blauw);
+  color: var(--blauw);
+}
+.aanwezig-item input[type="checkbox"] { display: none; }

@@ -103,7 +103,7 @@ function escapeHtml(str) {
 let alleWedstrijden     = [];
 let alleSpelers         = [];
 let huidigeFormatie     = "4-3-3";
-let opstellingSpelers   = new Array(11).fill(null); // speler_id per index
+let opstellingSpelers   = new Array(16).fill(null); // 11 basis + 5 bank
 let huidigOpstellingId  = null;
 let gekozenWedstrijdId  = null;
 let huidigePosIndex     = null; // welke positie wordt gekozen
@@ -173,6 +173,34 @@ function renderVeld() {
 
   // Klik op positie
   veld.querySelectorAll(".speler-positie").forEach(function (el) {
+    el.addEventListener("click", function () {
+      huidigePosIndex = parseInt(el.dataset.index);
+      openSpelerKiezer();
+    });
+  });
+
+  // ── Wisselspelers (bank) ──────────────────────────────────
+  const bank = document.getElementById("bank-container");
+  if (!bank) return;
+
+  bank.innerHTML = Array.from({ length: 5 }, function (_, i) {
+    const idx = 11 + i;
+    const speler = opstellingSpelers[idx]
+      ? alleSpelers.find(function (s) { return s.id === opstellingSpelers[idx]; })
+      : null;
+    const leeg = !speler;
+    const inhoud = speler
+      ? `<span style="font-size:11px;font-weight:800">${speler.rugnummer || "?"}</span>`
+      : `<span style="font-size:18px">+</span>`;
+    const naam = speler ? escapeHtml(speler.naam.split(" ")[0]) : "Bank";
+    return `
+      <div class="bank-speler-wrap" data-index="${idx}">
+        <div class="bank-cirkel${leeg ? " leeg" : ""}">${inhoud}</div>
+        <div class="bank-naam">${naam}</div>
+      </div>`;
+  }).join("");
+
+  bank.querySelectorAll(".bank-speler-wrap").forEach(function (el) {
     el.addEventListener("click", function () {
       huidigePosIndex = parseInt(el.dataset.index);
       openSpelerKiezer();
@@ -272,17 +300,17 @@ async function laadOpstelling(wedstrijdId) {
       });
 
       // Herstel spelers
-      opstellingSpelers = new Array(11).fill(null);
+      opstellingSpelers = new Array(16).fill(null);
       if (op.spelers_json && Array.isArray(op.spelers_json)) {
         op.spelers_json.forEach(function (item) {
-          if (item.positie_index < 11) {
+          if (item.positie_index < 16) {
             opstellingSpelers[item.positie_index] = item.speler_id || null;
           }
         });
       }
     } else {
       huidigOpstellingId = null;
-      opstellingSpelers  = new Array(11).fill(null);
+      opstellingSpelers  = new Array(16).fill(null);
     }
     renderVeld();
   } catch (e) {
@@ -300,9 +328,9 @@ async function slaOpstellingOp() {
   btn.textContent = "Opslaan…";
   btn.disabled = true;
 
-  const spelers_json = opstellingSpelers.map(function (id, i) {
-    return { positie_index: i, speler_id: id };
-  });
+  const spelers_json = opstellingSpelers
+    .map(function (id, i) { return { positie_index: i, speler_id: id }; })
+    .filter(function (item) { return item.speler_id !== null; });
 
   const payload = {
     wedstrijd_id: gekozenWedstrijdId,
@@ -358,7 +386,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       });
       pill.classList.add("actief");
       huidigeFormatie    = pill.dataset.formatie;
-      opstellingSpelers  = new Array(11).fill(null);
+      opstellingSpelers  = new Array(16).fill(null);
       renderVeld();
     });
   });
