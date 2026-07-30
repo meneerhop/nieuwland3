@@ -131,7 +131,7 @@ function renderTopScorers() {
   el.innerHTML = metDoelpunten.map(function (s, i) {
     return `<div class="top-scorer-item">
       <div class="top-scorer-rang">${medals[i]}</div>
-      <div class="top-scorer-naam">${escapeHtml(s.naam.split(" ")[0])}${s.aanvoerder ? " 🎽" : ""}</div>
+      <div class="top-scorer-naam">${escapeHtml(s.naam.split(" ")[0])}${s.aanvoerder ? ' <span style="font-weight:900;color:var(--blauw)">C</span>' : ""}</div>
       <div>
         <div class="top-scorer-getal">${s.goals}</div>
         <div class="top-scorer-label">doelp.</div>
@@ -174,7 +174,7 @@ function renderSpelers() {
         <div>
           <div class="speler-rugnummer">${s.rugnummer || ""}</div>
           ${fotoHtml(s, false)}
-          <div class="speler-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' <span style="font-size:14px">🎽</span>' : ""}</div>
+          <div class="speler-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' <span style="font-weight:900;color:var(--blauw);font-size:13px">C</span>' : ""}</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
             ${positieBadge(s.positie)}
             ${statusBadge(s.status)}
@@ -206,7 +206,7 @@ function openDetail(id) {
     <div class="speler-detail">
       ${fotoHtml(s, true)}
       <div>
-        <div class="speler-detail-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' 🎽' : ""}</div>
+        <div class="speler-detail-naam">${escapeHtml(s.naam)}${s.aanvoerder ? ' <span style="font-weight:900;color:var(--blauw)">C</span>' : ""}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           ${positieBadge(s.positie)}
           ${statusBadge(s.status)}
