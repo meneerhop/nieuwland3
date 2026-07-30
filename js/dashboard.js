@@ -53,24 +53,25 @@ function thuisUitBadge(thuis_uit) {
     : '<span class="badge badge-grijs">Uit</span>';
 }
 
-function isEigenTeam(naam) {
+function isOnsTeam(teamnaam) {
+  return teamnaam && teamnaam.toLowerCase().includes("nieuwland 3");
+}
+
+function isEigenTeamStand(naam) {
   return naam && naam.toLowerCase().includes("nieuwland 3");
 }
 
 function maakWedstrijdObject(item, status) {
-  const eigenTeamNaam = item.eigenteam || "";
-  const thuisIsEigen  = eigenTeamNaam
-    ? item.thuisteam === eigenTeamNaam
-    : isEigenTeam(item.thuisteam);
+  // teamnaam = ons team; vergelijk met thuisteam voor thuis/uit
+  const thuisIsEigen = (item.thuisteam || "").toLowerCase() === (item.teamnaam || "").toLowerCase();
 
-  const tijdKort = (item.aanvangstijd || "00:00").substring(0, 5);
-  const datum    = new Date(item.datum + "T" + tijdKort + ":00").toISOString();
+  const datum = new Date(item.wedstrijddatum).toISOString();
 
   return {
     datum,
     tegenstander:       thuisIsEigen ? item.uitteam : item.thuisteam,
     thuis_uit:          thuisIsEigen ? "thuis" : "uit",
-    locatie:            item.accommodatie || null,
+    locatie:            item.accommodatie || item.locatie || null,
     status,
     score_eigen:        status === "gespeeld" ? Number(thuisIsEigen ? item.thuisdoelpunten : item.uitdoelpunten) : null,
     score_tegenstander: status === "gespeeld" ? Number(thuisIsEigen ? item.uitdoelpunten   : item.thuisdoelpunten) : null,
@@ -114,6 +115,7 @@ function renderVolgendeWedstrijd(programma) {
 
   const nu = new Date();
   const gesorteerd = (programma || [])
+    .filter(function (item) { return isOnsTeam(item.teamnaam); })
     .map(function (item) { return maakWedstrijdObject(item, "gepland"); })
     .filter(function (w) { return new Date(w.datum) >= nu; })
     .sort(function (a, b) { return new Date(a.datum) - new Date(b.datum); });
@@ -157,6 +159,7 @@ function renderLaatsteUitslag(uitslag) {
   if (!container) return;
 
   const gesorteerd = (uitslag || [])
+    .filter(function (item) { return isOnsTeam(item.teamnaam); })
     .map(function (item) { return maakWedstrijdObject(item, "gespeeld"); })
     .sort(function (a, b) { return new Date(b.datum) - new Date(a.datum); });
 
@@ -202,7 +205,7 @@ function renderStats(stand, uitslag) {
     gewonnen   = eigenRij.gewonnen       ?? 0;
   } else {
     // Fallback: bereken uit uitslag-lijst
-    const lijst = (uitslag || []).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
+    const lijst = (uitslag || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
     doelpunten  = lijst.reduce(function (sum, w) { return sum + (w.score_eigen || 0); }, 0);
     gespeeld    = lijst.length;
     gewonnen    = lijst.filter(function (w) { return w.score_eigen > w.score_tegenstander; }).length;

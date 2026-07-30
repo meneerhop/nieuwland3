@@ -28,36 +28,26 @@ function resultaatBadge(eigen, tegenstander) {
   return '<span class="badge badge-gelijk">G</span>';
 }
 
-function isEigenTeam(naam) {
-  if (!naam) return false;
-  return naam.toLowerCase().includes("nieuwland 3");
+function isOnsTeam(teamnaam) {
+  if (!teamnaam) return false;
+  return teamnaam.toLowerCase().includes("nieuwland 3");
 }
 
 function maakWedstrijdObject(item, status) {
-  // eigenteam veld (indien aanwezig) bepaalt welk team ons team is
-  const eigenTeamNaam = item.eigenteam || "";
-  const thuisIsEigen  = eigenTeamNaam
-    ? item.thuisteam === eigenTeamNaam
-    : isEigenTeam(item.thuisteam);
+  // teamnaam = ons team; vergelijk met thuisteam voor thuis/uit
+  const thuisIsEigen = (item.thuisteam || "").toLowerCase() === (item.teamnaam || "").toLowerCase();
 
-  const tijdKort = (item.aanvangstijd || "00:00").substring(0, 5);
-  const datum    = new Date(item.datum + "T" + tijdKort + ":00").toISOString();
-
-  const scoreEigen = status === "gespeeld"
-    ? Number(thuisIsEigen ? item.thuisdoelpunten : item.uitdoelpunten)
-    : null;
-  const scoreTeg = status === "gespeeld"
-    ? Number(thuisIsEigen ? item.uitdoelpunten : item.thuisdoelpunten)
-    : null;
+  // wedstrijddatum is een volledig ISO-datetime string
+  const datum = new Date(item.wedstrijddatum).toISOString();
 
   return {
     datum,
     tegenstander:       thuisIsEigen ? item.uitteam : item.thuisteam,
     thuis_uit:          thuisIsEigen ? "thuis" : "uit",
-    locatie:            item.accommodatie || null,
+    locatie:            item.accommodatie || item.locatie || null,
     status,
-    score_eigen:        scoreEigen,
-    score_tegenstander: scoreTeg,
+    score_eigen:        status === "gespeeld" ? Number(thuisIsEigen ? item.thuisdoelpunten : item.uitdoelpunten) : null,
+    score_tegenstander: status === "gespeeld" ? Number(thuisIsEigen ? item.uitdoelpunten   : item.thuisdoelpunten) : null,
   };
 }
 
@@ -145,8 +135,8 @@ async function laadWedstrijden() {
     console.log("Sportlink programma:", programma);
     console.log("Sportlink uitslag:", uitslag);
 
-    const gepland  = (programma || []).map(function (item) { return maakWedstrijdObject(item, "gepland"); });
-    const gespeeld = (uitslag   || []).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
+    const gepland  = (programma || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gepland"); });
+    const gespeeld = (uitslag   || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
     alleWedstrijden = gepland.concat(gespeeld);
     renderWedstrijden();
   } catch (e) {
