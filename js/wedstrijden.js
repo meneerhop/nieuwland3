@@ -30,7 +30,7 @@ function resultaatBadge(eigen, tegenstander) {
 
 function isOnsTeam(teamnaam) {
   if (!teamnaam) return false;
-  return teamnaam.toLowerCase().includes("nieuwland 3");
+  return teamnaam.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase();
 }
 
 function maakWedstrijdObject(item, status) {

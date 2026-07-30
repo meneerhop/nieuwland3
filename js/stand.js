@@ -22,7 +22,12 @@ function escapeHtml(str) {
 }
 
 function isEigenTeam(team) {
-  return team && team.toLowerCase().includes("nieuwland 3");
+  if (!team) return false;
+  return team.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase();
+}
+
+function weergaveNaam(teamnaam) {
+  return isEigenTeam(teamnaam) ? TEAM_NAAM : (teamnaam || "");
 }
 
 /* ── State ──────────────────────────────────────────────────── */
@@ -43,8 +48,9 @@ function renderStand() {
   }
 
   const rijen = alleRijen.map(function (r, i) {
-    const teamnaam  = r.teamnaam  || r.team  || "";
+    const teamnaam  = r.teamnaam || r.team || "";
     const eigen     = isEigenTeam(teamnaam);
+    const weergave  = weergaveNaam(teamnaam);
     const doelVoor  = r.doelpunten_voor  ?? r.goals_voor  ?? 0;
     const doelTegen = r.doelpunten_tegen ?? r.goals_tegen ?? 0;
     const ds        = doelVoor - doelTegen;
@@ -54,7 +60,7 @@ function renderStand() {
     return `
       <tr class="${eigen ? "eigen-team" : ""}">
         <td>${r.positie ?? (i + 1)}</td>
-        <td>${escapeHtml(teamnaam)}</td>
+        <td>${escapeHtml(weergave)}</td>
         <td>${gespeeld}</td>
         <td>${r.gewonnen ?? 0}</td>
         <td>${r.gelijk ?? 0}</td>

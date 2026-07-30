@@ -54,11 +54,13 @@ function thuisUitBadge(thuis_uit) {
 }
 
 function isOnsTeam(teamnaam) {
-  return teamnaam && teamnaam.toLowerCase().includes("nieuwland 3");
+  if (!teamnaam) return false;
+  return teamnaam.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase();
 }
 
 function isEigenTeamStand(naam) {
-  return naam && naam.toLowerCase().includes("nieuwland 3");
+  if (!naam) return false;
+  return naam.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase();
 }
 
 function maakWedstrijdObject(item, status) {
