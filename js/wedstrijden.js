@@ -139,7 +139,7 @@ async function laadWedstrijden() {
   try {
     const [programma, uitslag] = await Promise.all([
       sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
-      sportlinkFetch("uitslag",   { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+      sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
     ]);
 
     console.log("Sportlink programma:", programma);

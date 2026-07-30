@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Haal alle Sportlink-data in één keer parallel op
   Promise.allSettled([
     sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
-    sportlinkFetch("uitslag",   { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+    sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
     sportlinkFetch("stand"),
   ]).then(function (results) {
     const programma = results[0].status === "fulfilled" ? results[0].value : null;
