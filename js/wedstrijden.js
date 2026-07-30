@@ -65,8 +65,9 @@ function maakWedstrijdObject(item, status) {
 }
 
 /* ── State ──────────────────────────────────────────────────── */
-let alleWedstrijden = [];
-let huidigeTab      = "aankomend";
+let alleWedstrijden  = [];
+let huidigeTab       = "aankomend";
+let gerenderdeLijst  = [];
 
 /* ── Render ─────────────────────────────────────────────────── */
 function renderWedstrijden() {
@@ -85,6 +86,8 @@ function renderWedstrijden() {
     return huidigeTab === "aankomend" ? da - db : db - da;
   });
 
+  gerenderdeLijst = lijst;
+
   if (lijst.length === 0) {
     container.innerHTML = `
       <div class="leeg-staat">
@@ -94,7 +97,7 @@ function renderWedstrijden() {
     return;
   }
 
-  container.innerHTML = lijst.map(function (w) {
+  container.innerHTML = lijst.map(function (w, i) {
     const d      = new Date(w.datum);
     const dag    = d.getDate();
     const maand  = d.toLocaleDateString("nl-NL", { month: "short" });
@@ -113,7 +116,7 @@ function renderWedstrijden() {
     }
 
     return `
-      <div class="glass-kaart wedstrijd-kaart">
+      <div class="glass-kaart wedstrijd-kaart klikbaar" data-index="${i}" style="cursor:pointer">
         <div class="wedstrijd-datum-blok">
           <div class="wedstrijd-datum-dag">${dag}</div>
           <div class="wedstrijd-datum-mnd">${maand}</div>
@@ -128,6 +131,14 @@ function renderWedstrijden() {
         <div class="wedstrijd-rechts">${rechts}</div>
       </div>`;
   }).join("");
+
+  container.querySelectorAll(".wedstrijd-kaart").forEach(function (kaart) {
+    kaart.addEventListener("click", function () {
+      const w = gerenderdeLijst[parseInt(kaart.dataset.index)];
+      sessionStorage.setItem("nieuwland3_wedstrijd", JSON.stringify(w));
+      location.href = "wedstrijd.html";
+    });
+  });
 }
 
 /* ── Laden ──────────────────────────────────────────────────── */
