@@ -339,6 +339,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       gekozenWedstrijdId = wSel.value ? parseInt(wSel.value) : null;
       laadOpstelling(gekozenWedstrijdId);
     });
+
+    // Pre-select wedstrijd coming from wedstrijd detail page
+    const voorgeselecteerd = sessionStorage.getItem("nieuwland3_opstelling_wedstrijd_id");
+    if (voorgeselecteerd) {
+      sessionStorage.removeItem("nieuwland3_opstelling_wedstrijd_id");
+      wSel.value = voorgeselecteerd;
+      gekozenWedstrijdId = parseInt(voorgeselecteerd);
+      laadOpstelling(gekozenWedstrijdId);
+    }
   }
 
   // Formatie pills

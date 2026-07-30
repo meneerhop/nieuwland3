@@ -79,12 +79,19 @@
 
         <div class="formulier-groep mt-12">
           <label class="formulier-label" for="form-positie">Positie</label>
-          <select id="form-positie" class="formulier-select">
-            <option value="GK">GK – Keeper</option>
-            <option value="DEF">DEF – Verdediger</option>
-            <option value="MID">MID – Middenvelder</option>
-            <option value="AAN">AAN – Aanvaller</option>
-          </select>
+          <input type="text" id="form-positie" class="formulier-input" placeholder="bijv. CVM/CM/CV" list="positie-opties" autocomplete="off">
+          <datalist id="positie-opties">
+            <option value="DM">
+            <option value="RB">
+            <option value="CV">
+            <option value="LB">
+            <option value="CVM">
+            <option value="CM">
+            <option value="CAM">
+            <option value="LVA">
+            <option value="RVA">
+            <option value="SP">
+          </datalist>
         </div>
 
         <div class="formulier-groep">

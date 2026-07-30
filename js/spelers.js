@@ -70,12 +70,23 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
+function positieKlasse(positie) {
+  if (!positie) return "badge-grijs";
+  const hoofd = positie.split("/")[0].trim().toUpperCase();
+  if (hoofd === "DM") return "pos-GK";
+  if (["RB","LB","CV"].includes(hoofd)) return "pos-DEF";
+  if (["CVM","CM","CAM"].includes(hoofd)) return "pos-MID";
+  if (["LVA","RVA","SP"].includes(hoofd)) return "pos-AAN";
+  // Legacy
+  if (hoofd === "GK")  return "pos-GK";
+  if (hoofd === "DEF") return "pos-DEF";
+  if (hoofd === "MID") return "pos-MID";
+  if (hoofd === "AAN") return "pos-AAN";
+  return "badge-grijs";
+}
+
 function positieBadge(positie) {
-  const klassen = { GK: "pos-GK", DEF: "pos-DEF", MID: "pos-MID", AAN: "pos-AAN" };
-  const labels  = { GK: "Keeper", DEF: "Verdediger", MID: "Middenvelder", AAN: "Aanvaller" };
-  const klasse = klassen[positie] || "badge-grijs";
-  const label  = labels[positie]  || positie;
-  return `<span class="speler-positie-badge ${klasse}">${label}</span>`;
+  return `<span class="speler-positie-badge ${positieKlasse(positie)}">${escapeHtml(positie || "–")}</span>`;
 }
 
 function fotoHtml(speler, groot) {
@@ -84,7 +95,8 @@ function fotoHtml(speler, groot) {
   if (speler.foto_url) {
     return `<img src="${escapeHtml(speler.foto_url)}" alt="${escapeHtml(speler.naam)}" class="${klasse}" width="${maat}" height="${maat}">`;
   }
-  const emoji = speler.positie === "GK" ? "🧤" : "⚽";
+  const hoofd = (speler.positie || "").split("/")[0].trim().toUpperCase();
+  const emoji = (hoofd === "DM" || hoofd === "GK") ? "🧤" : "⚽";
   return `<div class="${groot ? "speler-detail-foto" : "speler-foto-placeholder"}" style="${groot ? "display:flex;align-items:center;justify-content:center;background:var(--groen-zacht);border-radius:50%;font-size:32px" : ""}">${emoji}</div>`;
 }
 
@@ -210,7 +222,7 @@ function openBewerkModal(id) {
 function vulFormulier(s) {
   document.getElementById("form-naam").value               = s ? s.naam || "" : "";
   document.getElementById("form-rugnummer").value          = s ? s.rugnummer || "" : "";
-  document.getElementById("form-positie").value            = s ? s.positie || "MID" : "MID";
+  document.getElementById("form-positie").value            = s ? s.positie || "" : "";
   document.getElementById("form-foto_url").value           = s ? s.foto_url || "" : "";
   document.getElementById("form-goals").value              = s ? s.goals || 0 : 0;
   document.getElementById("form-assists").value            = s ? s.assists || 0 : 0;
