@@ -1,6 +1,5 @@
 /* ============================================================
    ASC Nieuwland 3 — Dashboard JS
-   Wedstrijden/stand: Sportlink | Training: Supabase
    ============================================================ */
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -64,11 +63,8 @@ function isEigenTeamStand(naam) {
 }
 
 function maakWedstrijdObject(item, status) {
-  // teamnaam = ons team; vergelijk met thuisteam voor thuis/uit
   const thuisIsEigen = (item.thuisteam || "").toLowerCase() === (item.teamnaam || "").toLowerCase();
-
   const datum = new Date(item.wedstrijddatum).toISOString();
-
   return {
     datum,
     tegenstander:       thuisIsEigen ? item.uitteam : item.thuisteam,
@@ -92,15 +88,6 @@ function foutState(tekst) {
     <div class="leeg-sub">Controleer je verbinding en probeer opnieuw.</div></div>`;
 }
 
-function skeletonStats() {
-  return Array(3).fill(0).map(function () {
-    return `<div class="stat-pill">
-      <div class="skeleton" style="height:32px;width:40px;margin:0 auto 8px"></div>
-      <div class="skeleton" style="height:10px;width:60px;margin:0 auto"></div>
-    </div>`;
-  }).join("");
-}
-
 /* ── Header datum ──────────────────────────────────────────── */
 function laadDatum() {
   const nu      = new Date();
@@ -110,68 +97,175 @@ function laadDatum() {
   if (el) el.textContent = weekdag.charAt(0).toUpperCase() + weekdag.slice(1) + ", " + datum;
 }
 
-/* ── Renders ─────────────────────────────────────────────────── */
-function renderVolgendeWedstrijd(programma) {
+/* ── Seizoensoverzicht: Winst / Gelijk / Verlies ───────────── */
+function renderStats(stand, uitslag, supaGespeeld) {
+  const container = document.getElementById("snelle-stats");
+  if (!container) return;
+
+  // Sportlink gespeelde wedstrijden
+  const sportlinkLijst = (uitslag || [])
+    .filter(function (item) { return isOnsTeam(item.teamnaam); })
+    .map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
+
+  // Supabase gespeelde wedstrijden met score
+  const supaLijst = (supaGespeeld || []).filter(function (w) {
+    return w.score_eigen !== null && w.score_eigen !== undefined &&
+           w.score_tegenstander !== null && w.score_tegenstander !== undefined;
+  });
+
+  // Probeer de stand eigenRij voor Sportlink W/G/V
+  const eigenRij = (stand || []).find(function (r) { return isEigenTeamStand(r.teamnaam || r.team); });
+
+  let gewonnen, gelijkgespeeld, verloren;
+
+  if (eigenRij && eigenRij.gewonnen !== undefined) {
+    // Sportlink stand heeft de officiële cijfers; voeg Supabase eraan toe
+    const supaW = supaLijst.filter(function (w) { return Number(w.score_eigen) > Number(w.score_tegenstander); }).length;
+    const supaG = supaLijst.filter(function (w) { return Number(w.score_eigen) === Number(w.score_tegenstander); }).length;
+    const supaV = supaLijst.filter(function (w) { return Number(w.score_eigen) < Number(w.score_tegenstander); }).length;
+    gewonnen       = (eigenRij.gewonnen       ?? 0) + supaW;
+    gelijkgespeeld = (eigenRij.gelijkgespeeld ?? eigenRij.gelijk ?? 0) + supaG;
+    verloren       = (eigenRij.verloren       ?? 0) + supaV;
+  } else {
+    // Fallback: bereken alles uit de lijsten
+    const alle = sportlinkLijst.concat(supaLijst);
+    gewonnen       = alle.filter(function (w) { return Number(w.score_eigen) > Number(w.score_tegenstander); }).length;
+    gelijkgespeeld = alle.filter(function (w) { return Number(w.score_eigen) === Number(w.score_tegenstander); }).length;
+    verloren       = alle.filter(function (w) { return Number(w.score_eigen) < Number(w.score_tegenstander); }).length;
+  }
+
+  container.innerHTML = `
+    <div class="stat-pill">
+      <div class="stat-getal stat-winst">${gewonnen}</div>
+      <div class="stat-label">Winst</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-getal stat-gelijk">${gelijkgespeeld}</div>
+      <div class="stat-label">Gelijk</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-getal stat-verlies">${verloren}</div>
+      <div class="stat-label">Verlies</div>
+    </div>`;
+}
+
+/* ── Volgende wedstrijd (Sportlink + Supabase) ──────────────── */
+function renderVolgendeWedstrijd(programma, supaGepland) {
   const container = document.getElementById("volgende-wedstrijd");
   if (!container) return;
 
   const nu = new Date();
-  const gesorteerd = (programma || [])
+
+  // Sportlink gepland
+  const sportlinkGepland = (programma || [])
     .filter(function (item) { return isOnsTeam(item.teamnaam); })
     .map(function (item) { return maakWedstrijdObject(item, "gepland"); })
+    .filter(function (w) { return new Date(w.datum) >= nu; });
+
+  // Supabase gepland (handmatige wedstrijden)
+  const supaOpkomend = (supaGepland || [])
     .filter(function (w) { return new Date(w.datum) >= nu; })
+    .map(function (w) {
+      return {
+        datum:         w.datum,
+        tegenstander:  w.tegenstander,
+        thuis_uit:     w.thuis_uit || "thuis",
+        locatie:       w.locatie || null,
+        status:        "gepland",
+      };
+    });
+
+  const alGepland = sportlinkGepland.concat(supaOpkomend)
     .sort(function (a, b) { return new Date(a.datum) - new Date(b.datum); });
 
-  if (gesorteerd.length === 0) {
+  if (alGepland.length === 0) {
     container.innerHTML = leegState("📅", "Geen geplande wedstrijden", "Er staan geen wedstrijden ingepland.");
     return;
   }
 
-  const w        = gesorteerd[0];
+  const w        = alGepland[0];
   const dag      = dagTot(w.datum);
   const datumStr = new Date(w.datum).toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" });
   const tijdStr  = new Date(w.datum).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
 
   container.innerHTML = `
-    <div class="volgende-wedstrijd">
-      <div class="flex-between">
-        <div>
-          <div class="sectie-label" style="margin:0 0 4px">Volgende wedstrijd</div>
-          <div class="tegenstander">${TEAM_NAAM}<br>vs ${escapeHtml(w.tegenstander)}</div>
+    <a href="wedstrijden.html" class="dash-wedstrijd-link">
+      <div class="volgende-wedstrijd">
+        <div class="flex-between">
+          <div>
+            <div class="tegenstander">${escapeHtml(TEAM_NAAM)}<br><span style="color:var(--inkt-zacht);font-weight:500">vs</span> ${escapeHtml(w.tegenstander)}</div>
+          </div>
+          <div style="text-align:center">
+            ${dag > 0
+              ? `<div class="countdown">${dag}</div><div class="countdown-label">dag${dag === 1 ? "" : "en"}</div>`
+              : dag === 0
+              ? `<div class="countdown" style="font-size:22px">Vandaag!</div>`
+              : `<div class="countdown" style="font-size:22px">Nu!</div>`}
+          </div>
         </div>
-        <div style="text-align:center">
-          ${dag > 0
-            ? `<div class="countdown">${dag}</div><div class="countdown-label">dag${dag === 1 ? "" : "en"}</div>`
-            : dag === 0
-            ? `<div class="countdown" style="font-size:22px">Vandaag!</div>`
-            : `<div class="countdown" style="font-size:22px">Nu!</div>`}
+        <div class="flex flex-gap-8" style="margin-top:10px;flex-wrap:wrap">
+          ${thuisUitBadge(w.thuis_uit)}
+          <span class="badge badge-wit">📅 ${datumStr}</span>
+          <span class="badge badge-wit">🕐 ${tijdStr}</span>
+          ${w.locatie ? `<span class="badge badge-wit">📍 ${escapeHtml(w.locatie)}</span>` : ""}
         </div>
+        <div class="dash-link-hint">Alle wedstrijden bekijken →</div>
       </div>
-      <div class="flex flex-gap-8" style="margin-top:8px;flex-wrap:wrap">
-        ${thuisUitBadge(w.thuis_uit)}
-        <span class="badge badge-wit">📅 ${datumStr}</span>
-        <span class="badge badge-wit">🕐 ${tijdStr}</span>
-        ${w.locatie ? `<span class="badge badge-wit">📍 ${escapeHtml(w.locatie)}</span>` : ""}
-      </div>
-    </div>`;
+    </a>`;
 }
 
-function renderLaatsteUitslag(uitslag) {
+/* ── Laatste uitslag (Sportlink + Supabase) ─────────────────── */
+function renderLaatsteUitslag(uitslag, supaGespeeld) {
   const container = document.getElementById("laatste-uitslag");
   if (!container) return;
 
-  const gesorteerd = (uitslag || [])
+  const sportlinkGespeeld = (uitslag || [])
     .filter(function (item) { return isOnsTeam(item.teamnaam); })
-    .map(function (item) { return maakWedstrijdObject(item, "gespeeld"); })
+    .map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
+
+  const supaMetScore = (supaGespeeld || [])
+    .filter(function (w) { return w.score_eigen !== null && w.score_eigen !== undefined; })
+    .map(function (w) {
+      return {
+        datum:              w.datum,
+        tegenstander:       w.tegenstander,
+        thuis_uit:          w.thuis_uit || "thuis",
+        score_eigen:        Number(w.score_eigen),
+        score_tegenstander: Number(w.score_tegenstander),
+        status:             "gespeeld",
+        doelpunten:         w.doelpunten || [],
+        kaarten:            w.kaarten || [],
+      };
+    });
+
+  const alleGespeeld = sportlinkGespeeld.concat(supaMetScore)
     .sort(function (a, b) { return new Date(b.datum) - new Date(a.datum); });
 
-  if (gesorteerd.length === 0) {
+  if (alleGespeeld.length === 0) {
     container.innerHTML = leegState("🏆", "Nog geen uitslagen", "Er zijn nog geen wedstrijden gespeeld.");
     return;
   }
 
-  const w        = gesorteerd[0];
+  const w        = alleGespeeld[0];
   const datumStr = new Date(w.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+
+  // Doelpunten samenvatting (alleen bij Supabase wedstrijden)
+  let doelpuntenHtml = "";
+  if (w.doelpunten && w.doelpunten.length > 0) {
+    const doel = w.doelpunten.map(function (d) {
+      return escapeHtml(d.speler) + (d.minuut ? " <span style='color:var(--inkt-zacht)'>" + d.minuut + "'</span>" : "");
+    }).join(" · ");
+    doelpuntenHtml = `<div style="font-size:12px;color:var(--inkt-zacht);margin-top:8px">⚽ ${doel}</div>`;
+  }
+
+  // Kaarten samenvatting
+  let kaartenHtml = "";
+  if (w.kaarten && w.kaarten.length > 0) {
+    const kaart = w.kaarten.map(function (k) {
+      return (k.type === "rood" ? "🔴" : "🟡") + " " + escapeHtml(k.speler) + (k.minuut ? " <span style='color:var(--inkt-zacht)'>" + k.minuut + "'</span>" : "");
+    }).join(" · ");
+    kaartenHtml = `<div style="font-size:12px;color:var(--inkt-zacht);margin-top:4px">${kaart}</div>`;
+  }
 
   container.innerHTML = `
     <div style="padding:20px">
@@ -180,6 +274,7 @@ function renderLaatsteUitslag(uitslag) {
         <div>
           <div style="font-size:14px;color:var(--inkt-zacht);margin-bottom:6px">${escapeHtml(TEAM_NAAM)} vs ${escapeHtml(w.tegenstander)}</div>
           <div class="score-groot">${w.score_eigen} – ${w.score_tegenstander}</div>
+          ${doelpuntenHtml}${kaartenHtml}
         </div>
         <div class="flex" style="flex-direction:column;align-items:flex-end;gap:8px">
           ${resultaatBadge(w.score_eigen, w.score_tegenstander)}
@@ -190,44 +285,7 @@ function renderLaatsteUitslag(uitslag) {
     </div>`;
 }
 
-function renderStats(stand, uitslag) {
-  const container = document.getElementById("snelle-stats");
-  if (!container) return;
-
-  // Gebruik ons team-rij uit de stand voor de snelle stats
-  const eigenRij = (stand || []).find(function (r) {
-    return isOnsTeam(r.teamnaam || r.team);
-  });
-
-  let doelpunten, gespeeld, gewonnen;
-
-  if (eigenRij) {
-    doelpunten = eigenRij.doelpunten_voor ?? eigenRij.goals_voor ?? 0;
-    gespeeld   = eigenRij.wedstrijden    ?? eigenRij.gespeeld    ?? 0;
-    gewonnen   = eigenRij.gewonnen       ?? 0;
-  } else {
-    // Fallback: bereken uit uitslag-lijst
-    const lijst = (uitslag || []).filter(function (item) { return isOnsTeam(item.teamnaam); }).map(function (item) { return maakWedstrijdObject(item, "gespeeld"); });
-    doelpunten  = lijst.reduce(function (sum, w) { return sum + (w.score_eigen || 0); }, 0);
-    gespeeld    = lijst.length;
-    gewonnen    = lijst.filter(function (w) { return w.score_eigen > w.score_tegenstander; }).length;
-  }
-
-  container.innerHTML = `
-    <div class="stat-pill">
-      <div class="stat-getal">${doelpunten}</div>
-      <div class="stat-label">Doelpunten</div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-getal">${gespeeld}</div>
-      <div class="stat-label">Gespeeld</div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-getal">${gewonnen}</div>
-      <div class="stat-label">Gewonnen</div>
-    </div>`;
-}
-
+/* ── Stand positie ──────────────────────────────────────────── */
 function renderStandPositie(stand) {
   const container = document.getElementById("stand-positie");
   if (!container) return;
@@ -237,7 +295,7 @@ function renderStandPositie(stand) {
     return;
   }
 
-  const idx     = stand.findIndex(function (r) { return isOnsTeam(r.teamnaam || r.team); });
+  const idx     = stand.findIndex(function (r) { return isEigenTeamStand(r.teamnaam || r.team); });
   const positie = idx === -1 ? "–" : (stand[idx].positie ?? idx + 1);
   const rij     = idx === -1 ? null : stand[idx];
 
@@ -246,7 +304,7 @@ function renderStandPositie(stand) {
       <div class="positie-getal">#${positie}</div>
       <div class="positie-info">
         <div class="label">Klassering</div>
-        <div class="team">${TEAM_NAAM}</div>
+        <div class="team">${escapeHtml(TEAM_NAAM)}</div>
         ${rij ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">
           ${rij.punten ?? 0} ptn · ${rij.wedstrijden ?? rij.gespeeld ?? 0} gespeeld
         </div>` : ""}
@@ -367,31 +425,29 @@ async function laadVolgendeTraining() {
 document.addEventListener("DOMContentLoaded", function () {
   laadDatum();
 
-  // Haal alle Sportlink-data in één keer parallel op
   Promise.allSettled([
     sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
     sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
     sportlinkFetch("stand"),
+    supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
   ]).then(function (results) {
-    const programma = results[0].status === "fulfilled" ? results[0].value : null;
-    const uitslag   = results[1].status === "fulfilled" ? results[1].value : null;
-    const stand     = results[2].status === "fulfilled" ? results[2].value : null;
+    const programma        = results[0].status === "fulfilled" ? results[0].value : null;
+    const uitslag          = results[1].status === "fulfilled" ? results[1].value : null;
+    const stand            = results[2].status === "fulfilled" ? results[2].value : null;
+    const supaWedstrijden  = results[3].status === "fulfilled" ? results[3].value : [];
 
-    if (programma !== null) {
-      renderVolgendeWedstrijd(programma);
+    const supaGepland  = (supaWedstrijden || []).filter(function (w) { return (w.status || "gepland") === "gepland"; });
+    const supaGespeeld = (supaWedstrijden || []).filter(function (w) { return w.status === "gespeeld"; });
+
+    if (programma !== null || supaGepland.length > 0) {
+      renderVolgendeWedstrijd(programma, supaGepland);
     } else {
       const el = document.getElementById("volgende-wedstrijd");
       if (el) el.innerHTML = foutState("Kon programma niet laden.");
     }
 
-    if (uitslag !== null) {
-      renderLaatsteUitslag(uitslag);
-    } else {
-      const el = document.getElementById("laatste-uitslag");
-      if (el) el.innerHTML = foutState("Kon uitslag niet laden.");
-    }
-
-    renderStats(stand, uitslag);
+    renderLaatsteUitslag(uitslag, supaGespeeld);
+    renderStats(stand, uitslag, supaGespeeld);
 
     if (stand !== null) {
       renderStandPositie(stand);

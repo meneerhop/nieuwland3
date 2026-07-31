@@ -1278,6 +1278,119 @@ img { max-width: 100%; display: block; }
   80%       { transform: translateX(4px); }
 }
 
+/* ── Dashboard link hint ────────────────────────────────────── */
+.dash-wedstrijd-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dash-link-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blauw);
+  opacity: 0.75;
+}
+
+/* Seizoensoverzicht W/G/V kleuren */
+.stat-winst  { color: #1a7a3c; }
+.stat-gelijk { color: var(--inkt-zacht); }
+.stat-verlies{ color: var(--rood); }
+
+/* ── Wedstrijd extra info (doelpunten/kaarten preview) ──────── */
+.wedstrijd-extra {
+  font-size: 11px;
+  color: var(--inkt-zacht);
+  margin-top: 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Handmatige wedstrijd subtiele markering */
+.wedstrijd-handmatig {
+  border-left: 3px solid rgba(0,46,95,0.25);
+}
+
+/* ── Uitslag score invoer ────────────────────────────────────── */
+.uitslag-score-rij {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.uitslag-score-team {
+  flex: 1;
+  text-align: center;
+}
+
+.uitslag-score-naam {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--inkt-zacht);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.uitslag-score-input {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  padding: 10px 8px;
+  color: var(--blauw);
+}
+
+.uitslag-score-scheider {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--inkt-zacht);
+  flex-shrink: 0;
+  margin-top: 22px;
+}
+
+/* ── Event-rij (doelpunten / kaarten) ───────────────────────── */
+.event-sectie-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.event-sectie-header .formulier-label {
+  margin: 0;
+}
+
+.event-rij {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.btn-verwijder-rij {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(189,43,11,0.10);
+  border: 1px solid rgba(189,43,11,0.20);
+  color: var(--rood);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.btn-verwijder-rij:hover { background: rgba(189,43,11,0.18); }
+
 /* ── Utility ────────────────────────────────────────────────── */
 .mt-8  { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
@@ -1370,6 +1483,21 @@ body.donker .menu-item:active { background: rgba(255,255,255,0.07); }
 body.donker .modal-sheet {
   background: rgba(12,20,32,0.97);
   border-color: rgba(255,255,255,0.10);
+}
+
+body.donker .stat-winst  { color: #4cba78; }
+body.donker .stat-verlies{ color: #f07060; }
+
+body.donker .uitslag-score-input { color: rgba(100,160,255,0.9); }
+
+body.donker .btn-verwijder-rij {
+  background: rgba(255,100,80,0.12);
+  border-color: rgba(255,100,80,0.22);
+  color: #f07060;
+}
+
+body.donker .wedstrijd-handmatig {
+  border-left-color: rgba(100,160,255,0.35);
 }
 
 body.donker .stand-tabel thead th { background: rgba(255,255,255,0.05); }
