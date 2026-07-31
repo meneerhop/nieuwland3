@@ -86,20 +86,96 @@ let huidigeTab             = "aankomend";
 let gerenderdeLijst        = [];
 let huidigeBewerking       = null;
 
-/* ── Spelers datalist ───────────────────────────────────────── */
-function bouwSpelersDatalist() {
-  let dl = document.getElementById("spelers-datalist");
-  if (!dl) {
-    dl = document.createElement("datalist");
-    dl.id = "spelers-datalist";
-    document.body.appendChild(dl);
+/* ── Positie klasse helper ──────────────────────────────────── */
+function getPKlasse(positie) {
+  if (!positie) return "";
+  const h = positie.split("/")[0].trim().toUpperCase();
+  if (h === "DM" || h === "GK")           return "pos-GK";
+  if (["RB","LB","CV"].includes(h))        return "pos-DEF";
+  if (["CVM","CM","CAM"].includes(h))      return "pos-MID";
+  if (["LVA","RVA","SP"].includes(h))      return "pos-AAN";
+  return "";
+}
+
+/* ── Speler picker bottom sheet ─────────────────────────────── */
+let huidigPickerTarget = null;
+
+function openSpelerPicker(kiezerEl) {
+  huidigPickerTarget = kiezerEl;
+  const zoekInput = document.getElementById("speler-picker-zoek");
+  zoekInput.value = "";
+  renderSpelerPickerLijst("");
+  document.getElementById("speler-picker-modal").classList.add("open");
+  // Focus zoekbalk na animatie
+  setTimeout(function () { zoekInput.focus(); }, 320);
+}
+
+function sluitSpelerPicker() {
+  document.getElementById("speler-picker-modal").classList.remove("open");
+  huidigPickerTarget = null;
+}
+
+function kiesSpeler(naam) {
+  if (!huidigPickerTarget) return;
+  const s = naam ? vindSpeler(naam) : null;
+  huidigPickerTarget.dataset.speler = naam;
+  const naamEl = huidigPickerTarget.querySelector(".speler-kiezer-naam");
+  const subEl  = huidigPickerTarget.querySelector(".speler-kiezer-sub");
+
+  if (naam) {
+    naamEl.textContent = naam;
+    subEl.textContent  = s ? [s.rugnummer ? "#" + s.rugnummer : null, s.positie].filter(Boolean).join(" · ") : "";
+    huidigPickerTarget.classList.add("gevuld");
+  } else {
+    naamEl.textContent = "Kies speler…";
+    subEl.textContent  = "";
+    huidigPickerTarget.classList.remove("gevuld");
   }
-  dl.innerHTML = alleBeschikbareSpelers
-    .slice()
-    .sort(function (a, b) { return (a.rugnummer || 99) - (b.rugnummer || 99); })
-    .map(function (s) {
-      return `<option value="${escapeHtml(s.naam)}">${s.rugnummer ? "#" + s.rugnummer + " · " : ""}${escapeHtml(s.positie || "")}</option>`;
-    }).join("");
+  sluitSpelerPicker();
+}
+
+function renderSpelerPickerLijst(zoek) {
+  const container = document.getElementById("speler-picker-lijst");
+  let lijst = alleBeschikbareSpelers.slice();
+
+  if (zoek) {
+    const lc = zoek.toLowerCase();
+    lijst = lijst.filter(function (s) {
+      return s.naam.toLowerCase().includes(lc) ||
+             (s.positie || "").toLowerCase().includes(lc) ||
+             String(s.rugnummer || "").includes(lc);
+    });
+  }
+
+  lijst.sort(function (a, b) { return (a.rugnummer || 99) - (b.rugnummer || 99); });
+
+  const items = lijst.map(function (s) {
+    return `
+      <div class="picker-speler-item" data-naam="${escapeHtml(s.naam)}">
+        <div class="picker-speler-cirkel ${getPKlasse(s.positie)}">${s.rugnummer || "?"}</div>
+        <div class="picker-speler-info">
+          <div class="picker-speler-naam">${escapeHtml(s.naam)}</div>
+          <div class="picker-speler-sub">${escapeHtml(s.positie || "")}</div>
+        </div>
+        <div class="picker-speler-stats">
+          <span>⚽ ${s.goals || 0}</span>
+          <span>🟨 ${s.gele_kaarten || 0}</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="picker-speler-item picker-leeg" data-naam="">
+      <div class="picker-speler-cirkel" style="font-size:18px;font-weight:400;color:var(--inkt-zacht)">–</div>
+      <div class="picker-speler-info">
+        <div class="picker-speler-naam" style="color:var(--inkt-zacht)">Geen / onbekend</div>
+      </div>
+    </div>
+    ${items || '<div style="padding:24px;text-align:center;color:var(--inkt-zacht);font-size:14px">Geen spelers gevonden</div>'}`;
+
+  container.querySelectorAll(".picker-speler-item").forEach(function (item) {
+    item.addEventListener("click", function () { kiesSpeler(item.dataset.naam); });
+  });
 }
 
 function vindSpeler(naam) {
@@ -245,38 +321,53 @@ function sluitUitslagModal() {
   huidigeBewerking = null;
 }
 
+function maakKiezerHtml(speler) {
+  const s = speler ? vindSpeler(speler) : null;
+  const sub = s ? [s.rugnummer ? "#" + s.rugnummer : null, s.positie].filter(Boolean).join(" · ") : "";
+  return `
+    <div class="speler-kiezer${speler ? " gevuld" : ""}" data-speler="${escapeHtml(speler || "")}">
+      <div class="speler-kiezer-tekst">
+        <div class="speler-kiezer-naam">${speler ? escapeHtml(speler) : "Kies speler…"}</div>
+        <div class="speler-kiezer-sub">${escapeHtml(sub)}</div>
+      </div>
+      <span class="speler-kiezer-pijl">▾</span>
+    </div>`;
+}
+
 function voegDoelpuntRij(speler, minuut) {
   const rij = document.createElement("div");
   rij.className = "event-rij";
   rij.innerHTML = `
-    <input type="text" class="formulier-input doel-speler" placeholder="Speler kiezen…"
-      list="spelers-datalist" value="${escapeHtml(speler || "")}" autocomplete="off" style="flex:1;min-width:0">
+    ${maakKiezerHtml(speler)}
     <input type="number" class="formulier-input doel-minuut" placeholder="Min" min="1" max="120"
       value="${minuut || ""}" style="width:68px;text-align:center">
     <button class="btn-verwijder-rij" title="Verwijderen">✕</button>
   `;
+  rij.querySelector(".speler-kiezer").addEventListener("click", function () {
+    openSpelerPicker(rij.querySelector(".speler-kiezer"));
+  });
   rij.querySelector(".btn-verwijder-rij").addEventListener("click", function () { rij.remove(); });
   document.getElementById("doelpunten-lijst").appendChild(rij);
-  rij.querySelector(".doel-speler").focus();
 }
 
 function voegKaartRij(speler, minuut, type) {
   const rij = document.createElement("div");
   rij.className = "event-rij";
   rij.innerHTML = `
-    <input type="text" class="formulier-input kaart-speler" placeholder="Speler kiezen…"
-      list="spelers-datalist" value="${escapeHtml(speler || "")}" autocomplete="off" style="flex:1;min-width:0">
+    ${maakKiezerHtml(speler)}
     <input type="number" class="formulier-input kaart-minuut" placeholder="Min" min="1" max="120"
       value="${minuut || ""}" style="width:68px;text-align:center">
-    <select class="formulier-select kaart-type" style="width:100px;padding-right:28px">
+    <select class="formulier-select kaart-type" style="width:96px;padding-right:28px">
       <option value="geel" ${(type || "geel") === "geel" ? "selected" : ""}>🟡 Geel</option>
       <option value="rood" ${type === "rood" ? "selected" : ""}>🔴 Rood</option>
     </select>
     <button class="btn-verwijder-rij" title="Verwijderen">✕</button>
   `;
+  rij.querySelector(".speler-kiezer").addEventListener("click", function () {
+    openSpelerPicker(rij.querySelector(".speler-kiezer"));
+  });
   rij.querySelector(".btn-verwijder-rij").addEventListener("click", function () { rij.remove(); });
   document.getElementById("kaarten-lijst").appendChild(rij);
-  rij.querySelector(".kaart-speler").focus();
 }
 
 /* ── Speler stats bijwerken ─────────────────────────────────── */
@@ -341,7 +432,7 @@ async function slaatUitslagOp() {
   // Verzamel nieuwe doelpunten
   const doelpunten = [];
   document.querySelectorAll("#doelpunten-lijst .event-rij").forEach(function (rij) {
-    const speler = rij.querySelector(".doel-speler").value.trim();
+    const speler = (rij.querySelector(".speler-kiezer").dataset.speler || "").trim();
     const minuut = parseInt(rij.querySelector(".doel-minuut").value);
     if (speler) doelpunten.push({ speler: speler, minuut: isNaN(minuut) ? null : minuut });
   });
@@ -349,7 +440,7 @@ async function slaatUitslagOp() {
   // Verzamel nieuwe kaarten
   const kaarten = [];
   document.querySelectorAll("#kaarten-lijst .event-rij").forEach(function (rij) {
-    const speler = rij.querySelector(".kaart-speler").value.trim();
+    const speler = (rij.querySelector(".speler-kiezer").dataset.speler || "").trim();
     const minuut = parseInt(rij.querySelector(".kaart-minuut").value);
     const type   = rij.querySelector(".kaart-type").value;
     if (speler) kaarten.push({ speler: speler, minuut: isNaN(minuut) ? null : minuut, type: type });
@@ -444,11 +535,19 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("voeg-doel-toe").addEventListener("click", function () { voegDoelpuntRij("", ""); });
   document.getElementById("voeg-kaart-toe").addEventListener("click", function () { voegKaartRij("", "", "geel"); });
 
-  // Laad spelers voor autocomplete, daarna wedstrijden
+  // Speler picker events
+  document.getElementById("speler-picker-sluiten").addEventListener("click", sluitSpelerPicker);
+  document.getElementById("speler-picker-modal").addEventListener("click", function (e) {
+    if (e.target === this) sluitSpelerPicker();
+  });
+  document.getElementById("speler-picker-zoek").addEventListener("input", function () {
+    renderSpelerPickerLijst(this.value.trim());
+  });
+
+  // Laad spelers voor picker, daarna wedstrijden
   supaFetch("spelers", { select: "id,naam,rugnummer,positie,goals,gele_kaarten,rode_kaarten", order: "rugnummer.asc" })
     .then(function (data) {
       alleBeschikbareSpelers = data || [];
-      bouwSpelersDatalist();
     })
     .catch(function () {})
     .finally(function () {

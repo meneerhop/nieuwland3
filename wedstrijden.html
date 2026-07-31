@@ -33,6 +33,22 @@
     </div>
   </div>
 
+  <!-- Speler picker sheet (boven uitslag modal) -->
+  <div class="modal-overlay" id="speler-picker-modal" style="z-index:600">
+    <div class="modal-sheet">
+      <div class="modal-handel"></div>
+      <div class="modal-hoofd">
+        <div class="modal-titel">Speler kiezen</div>
+        <button class="modal-sluiten" id="speler-picker-sluiten">✕</button>
+      </div>
+      <div style="padding:10px 16px 4px">
+        <input type="search" id="speler-picker-zoek" class="formulier-input"
+          placeholder="Zoeken op naam, positie of nummer…" autocomplete="off">
+      </div>
+      <div id="speler-picker-lijst" style="overflow-y:auto;max-height:55vh;padding:6px 0 env(safe-area-inset-bottom,16px)"></div>
+    </div>
+  </div>
+
   <!-- Uitslag invoer modal -->
   <div class="modal-overlay" id="uitslag-modal">
     <div class="modal-sheet">

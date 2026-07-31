@@ -1391,6 +1391,129 @@ img { max-width: 100%; display: block; }
 }
 .btn-verwijder-rij:hover { background: rgba(189,43,11,0.18); }
 
+/* ── Speler kiezer knop (in event-rij) ──────────────────────── */
+.speler-kiezer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--lijn);
+  background: rgba(255,255,255,0.80);
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.speler-kiezer:active {
+  background: rgba(0,46,95,0.06);
+}
+
+.speler-kiezer.gevuld {
+  border-color: var(--blauw);
+  background: rgba(0,46,95,0.06);
+}
+
+.speler-kiezer-tekst {
+  min-width: 0;
+  flex: 1;
+}
+
+.speler-kiezer-naam {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--inkt-zacht);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.speler-kiezer.gevuld .speler-kiezer-naam {
+  color: var(--inkt);
+}
+
+.speler-kiezer-sub {
+  font-size: 11px;
+  color: var(--inkt-zacht);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.speler-kiezer-pijl {
+  font-size: 12px;
+  color: var(--inkt-zacht);
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+/* ── Speler picker bottom sheet lijst ───────────────────────── */
+.picker-speler-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--lijn);
+  cursor: pointer;
+  transition: background var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.picker-speler-item:last-child { border-bottom: none; }
+.picker-speler-item:active { background: rgba(0,46,95,0.06); }
+
+.picker-speler-cirkel {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  background: var(--blauw-zacht);
+  color: var(--blauw);
+}
+
+.picker-speler-cirkel.pos-GK  { background: rgba(200,140,0,0.15);  color: #8a5f00; }
+.picker-speler-cirkel.pos-DEF { background: rgba(0,46,95,0.14);     color: var(--blauw); }
+.picker-speler-cirkel.pos-MID { background: rgba(0,46,95,0.08);     color: var(--blauw-licht); }
+.picker-speler-cirkel.pos-AAN { background: rgba(189,43,11,0.12);   color: var(--rood); }
+
+.picker-speler-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-speler-naam {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--inkt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-speler-sub {
+  font-size: 12px;
+  color: var(--inkt-zacht);
+  margin-top: 1px;
+}
+
+.picker-speler-stats {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--inkt-zacht);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 /* ── Utility ────────────────────────────────────────────────── */
 .mt-8  { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
@@ -1484,6 +1607,16 @@ body.donker .modal-sheet {
   background: rgba(12,20,32,0.97);
   border-color: rgba(255,255,255,0.10);
 }
+
+body.donker .speler-kiezer {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.15);
+}
+body.donker .speler-kiezer.gevuld {
+  background: rgba(100,160,255,0.12);
+  border-color: rgba(100,160,255,0.40);
+}
+body.donker .picker-speler-item:active { background: rgba(255,255,255,0.06); }
 
 body.donker .stat-winst  { color: #4cba78; }
 body.donker .stat-verlies{ color: #f07060; }
