@@ -19,13 +19,11 @@
       </div>
     </div>
 
-    <!-- Tab switcher -->
     <div class="tab-switcher">
       <button class="tab-switch-item actief" data-tab="aankomend">📅 Aankomend</button>
       <button class="tab-switch-item" data-tab="gespeeld">🏆 Gespeeld</button>
     </div>
 
-    <!-- Wedstrijd lijst -->
     <div id="wedstrijd-lijst">
       <div class="skeleton skeleton-kaart"></div>
       <div class="skeleton skeleton-kaart"></div>
@@ -33,70 +31,89 @@
     </div>
   </div>
 
-  <!-- Speler picker sheet (boven uitslag modal) -->
+  <!-- ── Speler picker (boven uitslag modal) ── -->
   <div class="modal-overlay" id="speler-picker-modal" style="z-index:600">
     <div class="modal-sheet">
       <div class="modal-handel"></div>
       <div class="modal-hoofd">
-        <div class="modal-titel">Speler kiezen</div>
+        <div class="modal-titel" id="speler-picker-titel">Speler kiezen</div>
         <button class="modal-sluiten" id="speler-picker-sluiten">✕</button>
       </div>
-      <div style="padding:10px 16px 4px">
+
+      <div class="picker-invoer-blok">
+        <div class="picker-minuut-rij">
+          <span class="picker-min-label">Minuut</span>
+          <input type="number" id="speler-picker-minuut" class="formulier-input picker-min-input"
+            placeholder="bijv. 45" min="1" max="120">
+        </div>
         <input type="search" id="speler-picker-zoek" class="formulier-input"
           placeholder="Zoeken op naam, positie of nummer…" autocomplete="off">
       </div>
-      <div id="speler-picker-lijst" style="overflow-y:auto;max-height:55vh;padding:6px 0 env(safe-area-inset-bottom,16px)"></div>
+
+      <div id="speler-picker-lijst"
+        style="overflow-y:auto;max-height:52vh;padding:6px 0 env(safe-area-inset-bottom,16px)"></div>
     </div>
   </div>
 
-  <!-- Uitslag invoer modal -->
+  <!-- ── Uitslag invoer modal ── -->
   <div class="modal-overlay" id="uitslag-modal">
     <div class="modal-sheet">
       <div class="modal-handel"></div>
       <div class="modal-hoofd">
-        <div class="modal-titel" id="uitslag-modal-titel">Uitslag invoeren</div>
+        <div class="modal-titel" id="uitslag-modal-titel">Uitslag</div>
         <button class="modal-sluiten" id="uitslag-modal-sluiten">✕</button>
       </div>
-      <div class="modal-inhoud">
+
+      <div class="modal-inhoud" style="padding-bottom:8px">
 
         <!-- Score -->
-        <div class="formulier-groep">
-          <label class="formulier-label">Score</label>
-          <div class="uitslag-score-rij">
-            <div class="uitslag-score-team">
-              <div class="uitslag-score-naam">ASC Nieuwland 3</div>
-              <input type="number" id="uitslag-score-eigen" class="formulier-input uitslag-score-input" min="0" placeholder="0">
+        <div class="uitslag-score-blok">
+          <div class="uitslag-score-team">
+            <div class="uitslag-score-naam">Nieuwland 3</div>
+            <input type="number" id="uitslag-score-eigen"
+              class="formulier-input uitslag-score-input" min="0" placeholder="0">
+          </div>
+          <div class="uitslag-score-scheider">–</div>
+          <div class="uitslag-score-team">
+            <div class="uitslag-score-naam" id="uitslag-tegenstander-label">Tegenstander</div>
+            <input type="number" id="uitslag-score-tegenstander"
+              class="formulier-input uitslag-score-input" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div id="events-timeline"></div>
+
+        <!-- Action buttons -->
+        <div class="event-actie-balk">
+          <button class="event-actie-btn" data-type="doel">
+            <div class="event-actie-cirkel cirkel-doel">⚽</div>
+            <span class="event-actie-label">Doel</span>
+          </button>
+          <button class="event-actie-btn" data-type="geel">
+            <div class="event-actie-cirkel cirkel-geel">
+              <span class="kaart-icon geel"></span>
             </div>
-            <div class="uitslag-score-scheider">–</div>
-            <div class="uitslag-score-team">
-              <div class="uitslag-score-naam" id="uitslag-tegenstander-label">Tegenstander</div>
-              <input type="number" id="uitslag-score-tegenstander" class="formulier-input uitslag-score-input" min="0" placeholder="0">
+            <span class="event-actie-label">Geel</span>
+          </button>
+          <button class="event-actie-btn" data-type="rood">
+            <div class="event-actie-cirkel cirkel-rood">
+              <span class="kaart-icon rood"></span>
             </div>
-          </div>
+            <span class="event-actie-label">Rood</span>
+          </button>
+          <button class="event-actie-btn" data-type="blessure">
+            <div class="event-actie-cirkel cirkel-blessure">🩹</div>
+            <span class="event-actie-label">Blessure</span>
+          </button>
         </div>
 
-        <!-- Doelpunten -->
-        <div class="formulier-groep">
-          <div class="event-sectie-header">
-            <label class="formulier-label">Doelpunten</label>
-            <button class="btn btn-sm btn-glas" id="voeg-doel-toe" style="padding:6px 12px;font-size:12px">+ Toevoegen</button>
-          </div>
-          <div id="doelpunten-lijst"></div>
-        </div>
-
-        <!-- Kaarten -->
-        <div class="formulier-groep" style="margin-bottom:8px">
-          <div class="event-sectie-header">
-            <label class="formulier-label">Kaarten</label>
-            <button class="btn btn-sm btn-glas" id="voeg-kaart-toe" style="padding:6px 12px;font-size:12px">+ Toevoegen</button>
-          </div>
-          <div id="kaarten-lijst"></div>
-        </div>
-
-        <div id="uitslag-fout" style="color:var(--rood);font-size:13px;font-weight:600;min-height:18px"></div>
+        <div id="uitslag-fout"
+          style="color:var(--rood);font-size:13px;font-weight:600;min-height:16px;text-align:center;margin-top:4px"></div>
       </div>
+
       <div class="modal-voet">
-        <button class="btn btn-primair w-full" id="uitslag-opslaan-btn">Uitslag opslaan</button>
+        <button class="btn btn-primair w-full" id="uitslag-opslaan-btn">Opslaan</button>
       </div>
     </div>
   </div>
