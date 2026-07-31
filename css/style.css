@@ -1327,11 +1327,27 @@ img { max-width: 100%; display: block; }
 .ev-rood     { background: rgba(224,48,48,0.12); }
 .ev-blessure { background: rgba(189,43,11,0.10); }
 
-.ev-naam {
+.ev-namen {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ev-naam {
   font-size: 14px;
   font-weight: 600;
   color: var(--inkt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ev-assist {
+  font-size: 11px;
+  color: var(--inkt-zacht);
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1489,10 +1505,12 @@ img { max-width: 100%; display: block; }
 }
 
 /* ── Uitslag score invoer ────────────────────────────────────── */
+.uitslag-score-blok,
 .uitslag-score-rij {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 8px;
 }
 
 .uitslag-score-team {

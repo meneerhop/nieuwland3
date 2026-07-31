@@ -129,13 +129,25 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   rijen.push(`
-    <div style="display:flex;align-items:center;gap:12px;padding:14px 20px">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 20px${w.thuis_uit === "uit" && w.locatie ? ";border-bottom:1px solid var(--lijn)" : ""}">
       <span style="font-size:20px">⚽</span>
       <div>
         <div style="font-size:11px;color:var(--inkt-zacht);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Tegenstander</div>
         <div style="font-size:15px;font-weight:600;color:var(--inkt)">${escapeHtml(w.tegenstander)}</div>
       </div>
     </div>`);
+
+  // Reisinfo: routelink for away matches with location
+  if (w.thuis_uit === "uit" && w.locatie) {
+    const mapsUrl = "https://www.google.com/maps/search/" + encodeURIComponent(w.locatie + ", Nederland");
+    rijen.push(`
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 20px">
+        <span style="font-size:20px">🗺️</span>
+        <a href="${mapsUrl}" target="_blank" rel="noopener" class="btn btn-glas" style="font-size:13px;padding:8px 16px;flex-shrink:0">
+          Routebeschrijving
+        </a>
+      </div>`);
+  }
 
   detailsEl.innerHTML = rijen.join("");
 
@@ -150,6 +162,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.getElementById("verslag-label").style.display = "none";
     } else {
       renderVerslag(w);
+    }
+  }
+
+  // ── Notities ─────────────────────────────────────────────────
+  const notitiesSectie = document.getElementById("notities-sectie");
+  const notitiesLabel  = document.getElementById("notities-label");
+  if (notitiesSectie) {
+    if (!heeftId) {
+      notitiesSectie.innerHTML = "";
+      if (notitiesLabel) notitiesLabel.style.display = "none";
+    } else {
+      renderNotities(w);
     }
   }
 
@@ -310,6 +334,63 @@ function renderVerslag(w) {
       w.verslag = tekst || null;
       sessionStorage.setItem("nieuwland3_wedstrijd", JSON.stringify(w));
       renderVerslag(w);
+    } catch (e) {
+      alert("Opslaan mislukt.");
+      btn.textContent = "Opslaan"; btn.disabled = false;
+    }
+  });
+}
+
+// ── Notities (tegenstander scouting) ───────────────────────────
+function renderNotities(w) {
+  const el = document.getElementById("notities-sectie");
+  if (!el) return;
+
+  const huidigeNotities = w.notities || "";
+
+  el.innerHTML = `
+    <div class="glass-kaart" style="overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--lijn);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-weight:700;font-size:15px;color:var(--inkt)">Tegenstander notities</div>
+        <button id="notities-bewerk-btn" class="btn btn-glas" style="font-size:12px;padding:6px 12px">
+          ${huidigeNotities ? "Bewerken" : "Toevoegen"}
+        </button>
+      </div>
+      <div id="notities-inhoud">
+        ${huidigeNotities
+          ? `<div class="verslag-tekst">${escapeHtml(huidigeNotities)}</div>`
+          : `<div style="padding:14px 20px;font-size:14px;color:var(--inkt-zacht)">Nog geen notities toegevoegd</div>`}
+      </div>
+      <div id="notities-edit" style="display:none;padding:12px 20px;border-top:1px solid var(--lijn)">
+        <textarea id="notities-textarea" class="formulier-textarea" style="min-height:100px" placeholder="Sterktes, zwaktes, speelstijl…">${escapeHtml(huidigeNotities)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="notities-opslaan-btn" class="btn btn-primair" style="flex:1;font-size:14px;padding:10px">Opslaan</button>
+          <button id="notities-annuleer-btn" class="btn btn-glas" style="font-size:14px;padding:10px">Annuleer</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById("notities-bewerk-btn").addEventListener("click", function () {
+    document.getElementById("notities-edit").style.display = "block";
+    document.getElementById("notities-inhoud").style.display = "none";
+    document.getElementById("notities-bewerk-btn").style.display = "none";
+  });
+
+  document.getElementById("notities-annuleer-btn").addEventListener("click", function () {
+    document.getElementById("notities-edit").style.display = "none";
+    document.getElementById("notities-inhoud").style.display = "block";
+    document.getElementById("notities-bewerk-btn").style.display = "";
+  });
+
+  document.getElementById("notities-opslaan-btn").addEventListener("click", async function () {
+    const btn   = document.getElementById("notities-opslaan-btn");
+    const tekst = document.getElementById("notities-textarea").value.trim();
+    btn.textContent = "Opslaan…"; btn.disabled = true;
+    try {
+      await supaPatch("wedstrijden", "id=eq." + w.id, { notities: tekst || null });
+      w.notities = tekst || null;
+      sessionStorage.setItem("nieuwland3_wedstrijd", JSON.stringify(w));
+      renderNotities(w);
     } catch (e) {
       alert("Opslaan mislukt.");
       btn.textContent = "Opslaan"; btn.disabled = false;

@@ -84,8 +84,9 @@ let alleBeschikbareSpelers = [];
 let huidigeTab             = "aankomend";
 let gerenderdeLijst        = [];
 let huidigeBewerking       = null;
-let huidigeEvents          = []; // { type: 'doel'|'geel'|'rood'|'blessure', speler, minuut }
+let huidigeEvents          = []; // { type, speler, minuut, assist? }
 let huidigEventType        = null;
+let huidigPendingDoel      = null; // two-step: goal scorer → assist picker
 
 /* ── Event icon helpers ─────────────────────────────────────── */
 function eventIconHtml(type) {
@@ -106,27 +107,63 @@ function eventTypeTitel(type) {
 
 /* ── Speler picker ──────────────────────────────────────────── */
 function openSpelerPicker(type) {
-  huidigEventType = type;
+  huidigEventType   = type;
+  huidigPendingDoel = null;
   document.getElementById("speler-picker-titel").textContent = eventTypeTitel(type);
   document.getElementById("speler-picker-minuut").value = "";
-  document.getElementById("speler-picker-zoek").value = "";
+  document.getElementById("speler-picker-zoek").value   = "";
+  const minRij = document.querySelector(".picker-minuut-rij");
+  if (minRij) minRij.style.display = "";
   renderSpelerPickerLijst("");
   document.getElementById("speler-picker-modal").classList.add("open");
   setTimeout(function () { document.getElementById("speler-picker-minuut").focus(); }, 320);
 }
 
 function sluitSpelerPicker() {
+  if (huidigPendingDoel !== null) {
+    // Picker dismissed during assist step → save goal with no assist
+    huidigeEvents.push({ type: "doel", speler: huidigPendingDoel.speler, minuut: huidigPendingDoel.minuut, assist: null });
+    huidigPendingDoel = null;
+    const minRij = document.querySelector(".picker-minuut-rij");
+    if (minRij) minRij.style.display = "";
+    renderEventTimeline();
+  }
   document.getElementById("speler-picker-modal").classList.remove("open");
   huidigEventType = null;
 }
 
 function kiesSpeler(naam) {
   const minuut = parseInt(document.getElementById("speler-picker-minuut").value) || null;
-  if (naam !== "" || naam === "") {
+
+  if (huidigEventType === "doel" && huidigPendingDoel === null) {
+    // Step 1: goal scorer picked → now ask for assist
+    huidigPendingDoel = { speler: naam, minuut: minuut };
+    document.getElementById("speler-picker-titel").textContent = "🅰  Assist (optioneel)";
+    const minRij = document.querySelector(".picker-minuut-rij");
+    if (minRij) minRij.style.display = "none";
+    document.getElementById("speler-picker-zoek").value = "";
+    renderSpelerPickerLijst("");
+    return; // keep picker open for assist
+  }
+
+  if (huidigPendingDoel !== null) {
+    // Step 2: assist picker
+    huidigeEvents.push({
+      type:   "doel",
+      speler: huidigPendingDoel.speler,
+      minuut: huidigPendingDoel.minuut,
+      assist: naam || null,
+    });
+    huidigPendingDoel = null;
+    const minRij = document.querySelector(".picker-minuut-rij");
+    if (minRij) minRij.style.display = "";
+  } else {
     huidigeEvents.push({ type: huidigEventType, speler: naam, minuut: minuut });
   }
+
   renderEventTimeline();
-  sluitSpelerPicker();
+  document.getElementById("speler-picker-modal").classList.remove("open");
+  huidigEventType = null;
 }
 
 function renderSpelerPickerLijst(zoek) {
@@ -158,7 +195,8 @@ function renderSpelerPickerLijst(zoek) {
         </div>
         <div class="picker-speler-stats">
           <span>⚽ ${s.goals || 0}</span>
-          <span style="margin-left:6px">🟨 ${s.gele_kaarten || 0}</span>
+          <span style="margin-left:4px">🅰 ${s.assists || 0}</span>
+          <span style="margin-left:4px">🟨 ${s.gele_kaarten || 0}</span>
         </div>
       </div>`; }).join("") ||
     '<div style="padding:24px;text-align:center;color:var(--inkt-zacht);font-size:14px">Geen spelers gevonden</div>'}`;
@@ -269,14 +307,20 @@ function renderEventTimeline() {
   }
 
   const metIdx = huidigeEvents.map(function (ev, i) {
-    return { type: ev.type, speler: ev.speler, minuut: ev.minuut, origIdx: i };
+    return { type: ev.type, speler: ev.speler, minuut: ev.minuut, assist: ev.assist || null, origIdx: i };
   }).sort(function (a, b) { return (a.minuut || 999) - (b.minuut || 999); });
 
   container.innerHTML = metIdx.map(function (ev) {
+    const assistHtml = ev.type === "doel" && ev.assist
+      ? `<div class="ev-assist">🅰 ${escapeHtml(ev.assist)}</div>`
+      : "";
     return `
       <div class="ev-rij">
         ${eventIconHtml(ev.type)}
-        <div class="ev-naam">${escapeHtml(ev.speler || "Onbekend")}</div>
+        <div class="ev-namen">
+          <div class="ev-naam">${escapeHtml(ev.speler || "Onbekend")}</div>
+          ${assistHtml}
+        </div>
         ${ev.minuut ? `<div class="ev-min">${ev.minuut}'</div>` : ""}
         <button class="ev-del" data-idx="${ev.origIdx}">×</button>
       </div>`;
@@ -299,7 +343,7 @@ function openUitslagModal(w) {
   document.getElementById("uitslag-fout").textContent        = "";
 
   huidigeEvents = [];
-  (w.doelpunten || []).forEach(function (d) { huidigeEvents.push({ type: "doel",     speler: d.speler, minuut: d.minuut }); });
+  (w.doelpunten || []).forEach(function (d) { huidigeEvents.push({ type: "doel",     speler: d.speler, minuut: d.minuut, assist: d.assist || null }); });
   (w.kaarten    || []).forEach(function (k) { huidigeEvents.push({ type: k.type,     speler: k.speler, minuut: k.minuut }); });
   (w.blessures  || []).forEach(function (b) { huidigeEvents.push({ type: "blessure", speler: b.speler, minuut: b.minuut }); });
 
@@ -317,19 +361,20 @@ async function werkSpelerStatsbij(oudeDoelpunten, nieuweDoelpunten, oudeKaarten,
   const diff = {};
   function voegToe(naam, veld, delta) {
     const s = vindSpeler(naam); if (!s) return;
-    if (!diff[s.id]) diff[s.id] = { speler: s, goals: 0, gele_kaarten: 0, rode_kaarten: 0 };
+    if (!diff[s.id]) diff[s.id] = { speler: s, goals: 0, assists: 0, gele_kaarten: 0, rode_kaarten: 0 };
     diff[s.id][veld] += delta;
   }
-  (oudeDoelpunten  || []).forEach(function (d) { voegToe(d.speler, "goals", -1); });
-  (nieuweDoelpunten|| []).forEach(function (d) { voegToe(d.speler, "goals", +1); });
+  (oudeDoelpunten  || []).forEach(function (d) { voegToe(d.speler, "goals", -1); if (d.assist) voegToe(d.assist, "assists", -1); });
+  (nieuweDoelpunten|| []).forEach(function (d) { voegToe(d.speler, "goals", +1); if (d.assist) voegToe(d.assist, "assists", +1); });
   (oudeKaarten     || []).forEach(function (k) { voegToe(k.speler, k.type==="rood"?"rode_kaarten":"gele_kaarten", -1); });
   (nieuweKaarten   || []).forEach(function (k) { voegToe(k.speler, k.type==="rood"?"rode_kaarten":"gele_kaarten", +1); });
 
   const patches = Object.values(diff)
-    .filter(function (d) { return d.goals||d.gele_kaarten||d.rode_kaarten; })
+    .filter(function (d) { return d.goals||d.assists||d.gele_kaarten||d.rode_kaarten; })
     .map(function (d) {
       const s = d.speler, body = {};
       if (d.goals)        body.goals        = Math.max(0, (s.goals||0)        + d.goals);
+      if (d.assists)      body.assists      = Math.max(0, (s.assists||0)      + d.assists);
       if (d.gele_kaarten) body.gele_kaarten = Math.max(0, (s.gele_kaarten||0) + d.gele_kaarten);
       if (d.rode_kaarten) body.rode_kaarten = Math.max(0, (s.rode_kaarten||0) + d.rode_kaarten);
       return supaPatch("spelers", s.id, body);
@@ -341,6 +386,7 @@ async function werkSpelerStatsbij(oudeDoelpunten, nieuweDoelpunten, oudeKaarten,
     const s = alleBeschikbareSpelers.find(function (sp) { return sp.id === d.speler.id; });
     if (!s) return;
     if (d.goals)        s.goals        = Math.max(0, (s.goals||0)        + d.goals);
+    if (d.assists)      s.assists      = Math.max(0, (s.assists||0)      + d.assists);
     if (d.gele_kaarten) s.gele_kaarten = Math.max(0, (s.gele_kaarten||0) + d.gele_kaarten);
     if (d.rode_kaarten) s.rode_kaarten = Math.max(0, (s.rode_kaarten||0) + d.rode_kaarten);
   });
@@ -358,11 +404,11 @@ async function slaatUitslagOp() {
   }
 
   const doelpunten = huidigeEvents.filter(function(e){return e.type==="doel";})
-    .map(function(e){return {speler:e.speler,minuut:e.minuut};});
+    .map(function(e){return {speler:e.speler, minuut:e.minuut, assist: e.assist || null};});
   const kaarten = huidigeEvents.filter(function(e){return e.type==="geel"||e.type==="rood";})
-    .map(function(e){return {speler:e.speler,minuut:e.minuut,type:e.type};});
+    .map(function(e){return {speler:e.speler, minuut:e.minuut, type:e.type};});
   const blessures = huidigeEvents.filter(function(e){return e.type==="blessure";})
-    .map(function(e){return {speler:e.speler,minuut:e.minuut};});
+    .map(function(e){return {speler:e.speler, minuut:e.minuut};});
 
   const btn = document.getElementById("uitslag-opslaan-btn");
   btn.textContent = "Opslaan…"; btn.disabled = true;
@@ -407,7 +453,7 @@ async function laadWedstrijden() {
       sportlinkFetch("uitslagen",  { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
       supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
     ]);
-    const gepland  = (r0.value||[]).filter(isOnsTeam.bind(null)).filter(function(i){return isOnsTeam(i.teamnaam);}).map(function(i){return maakWedstrijdObject(i,"gepland");});
+    const gepland  = (r0.value||[]).filter(function(i){return isOnsTeam(i.teamnaam);}).map(function(i){return maakWedstrijdObject(i,"gepland");});
     const gespeeld = (r1.value||[]).filter(function(i){return isOnsTeam(i.teamnaam);}).map(function(i){return maakWedstrijdObject(i,"gespeeld");});
     alleWedstrijden = gepland.concat(gespeeld).concat(r2.value||[]);
     renderWedstrijden();
@@ -445,8 +491,8 @@ document.addEventListener("DOMContentLoaded", function () {
     renderSpelerPickerLijst(this.value.trim());
   });
 
-  // Laad spelers voor picker, dan wedstrijden
-  supaFetch("spelers", { select: "id,naam,rugnummer,positie,goals,gele_kaarten,rode_kaarten", order: "rugnummer.asc" })
+  // Laad spelers (inclusief assists) voor picker, dan wedstrijden
+  supaFetch("spelers", { select: "id,naam,rugnummer,positie,goals,assists,gele_kaarten,rode_kaarten", order: "rugnummer.asc" })
     .then(function (d) { alleBeschikbareSpelers = d || []; })
     .catch(function () {})
     .finally(laadWedstrijden);

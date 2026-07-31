@@ -312,6 +312,140 @@ function renderStandPositie(stand) {
     </div>`;
 }
 
+/* ── Kaartenstatus widget ───────────────────────────────────── */
+function renderKaartenStatus(spelers) {
+  const container = document.getElementById("kaarten-status");
+  if (!container) return;
+
+  const risico = (spelers || [])
+    .filter(function (s) { return (s.gele_kaarten || 0) >= 2; })
+    .sort(function (a, b) { return (b.gele_kaarten || 0) - (a.gele_kaarten || 0); });
+
+  if (risico.length === 0) {
+    container.innerHTML = '<div style="padding:12px 20px;font-size:13px;color:var(--inkt-zacht)">Geen spelers in gevaar voor schorsing</div>';
+    return;
+  }
+
+  container.innerHTML = risico.map(function (s, i) {
+    const kaarten = s.gele_kaarten || 0;
+    const kleur   = kaarten >= 3 ? "color:var(--rood)" : "color:#a07000";
+    const waarschuwing = kaarten >= 3 ? " ⚠️" : "";
+    const rand    = i < risico.length - 1 ? "border-bottom:1px solid var(--lijn)" : "";
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 20px;${rand}">
+      <span class="kaart-icon geel" style="flex-shrink:0;width:14px;height:20px"></span>
+      <div style="flex:1;font-size:14px;font-weight:600;color:var(--inkt)">${escapeHtml(s.naam)}${waarschuwing}</div>
+      <div style="font-size:16px;font-weight:800;${kleur}">${kaarten}×</div>
+    </div>`;
+  }).join("");
+}
+
+/* ── Seizoensgrafiek ────────────────────────────────────────── */
+function renderSeizoensgrafiek(alleGespeeld) {
+  const container = document.getElementById("seizoensgrafiek");
+  if (!container) return;
+
+  const gesorteerd = (alleGespeeld || []).slice()
+    .sort(function (a, b) { return new Date(a.datum) - new Date(b.datum); });
+
+  if (gesorteerd.length === 0) {
+    container.style.display = "none";
+    const lbl = document.getElementById("seizoensgrafiek-label");
+    if (lbl) lbl.style.display = "none";
+    return;
+  }
+
+  const barW = 14, gap = 5, H = 52, barH = 38;
+  const totalW = gesorteerd.length * (barW + gap) - gap;
+
+  const bars = gesorteerd.map(function (w, i) {
+    const e = Number(w.score_eigen), t = Number(w.score_tegenstander);
+    const kleur = e > t ? "#1a7a3c" : e < t ? "#BD2B0B" : "#999";
+    const x = i * (barW + gap);
+    const datumStr = new Date(w.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+    const score = w.score_eigen + "–" + w.score_tegenstander;
+    return `<rect x="${x}" y="${H - barH}" width="${barW}" height="${barH}" rx="4" fill="${kleur}" opacity="0.82">
+      <title>${escapeHtml(w.tegenstander)} ${score} · ${datumStr}</title>
+    </rect>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div style="padding:14px 20px 12px">
+      <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" style="width:100%;max-width:100%;display:block;overflow:visible">
+        ${bars}
+      </svg>
+      <div style="display:flex;gap:14px;margin-top:8px;font-size:10px;color:var(--inkt-zacht);font-weight:700;text-transform:uppercase;letter-spacing:0.4px">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;background:#1a7a3c;border-radius:2px;display:inline-block"></span>Winst</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;background:#999;border-radius:2px;display:inline-block"></span>Gelijk</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;background:#BD2B0B;border-radius:2px;display:inline-block"></span>Verlies</span>
+      </div>
+    </div>`;
+}
+
+/* ── Weer widget ────────────────────────────────────────────── */
+function weerIcon(code) {
+  if (code === 0)        return "☀️";
+  if (code <= 3)         return "⛅";
+  if (code <= 49)        return "🌫️";
+  if (code <= 55)        return "🌦️";
+  if (code <= 69)        return "🌧️";
+  if (code <= 79)        return "❄️";
+  if (code <= 84)        return "🌨️";
+  return "⛈️";
+}
+
+function weerLabel(code) {
+  if (code === 0)        return "Helder";
+  if (code <= 3)         return "Bewolkt";
+  if (code <= 49)        return "Mistig";
+  if (code <= 55)        return "Lichte motregen";
+  if (code <= 69)        return "Regen";
+  if (code <= 79)        return "Sneeuw";
+  if (code <= 84)        return "Sneeuwbui";
+  return "Onweer";
+}
+
+async function laadWeerWidget(datum) {
+  const weerSectie = document.getElementById("weer-sectie");
+  const container  = document.getElementById("weer-widget");
+  if (!container) return;
+
+  const d       = new Date(datum);
+  const nu      = new Date();
+  const dagsDif = Math.floor((d - nu) / (1000 * 60 * 60 * 24));
+
+  // Only show weather for matches in the next 10 days
+  if (dagsDif < 0 || dagsDif > 10) {
+    if (weerSectie) weerSectie.style.display = "none";
+    return;
+  }
+
+  const datumStr = d.toISOString().split("T")[0];
+  const lat = 52.37, lon = 4.90; // Amsterdam
+
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+      "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum" +
+      "&timezone=Europe%2FAmsterdam&start_date=" + datumStr + "&end_date=" + datumStr;
+    const data = await fetch(url).then(function (r) { return r.json(); });
+    const wc  = data.daily.weathercode[0];
+    const hi  = Math.round(data.daily.temperature_2m_max[0]);
+    const lo  = Math.round(data.daily.temperature_2m_min[0]);
+    const mm  = data.daily.precipitation_sum[0];
+
+    container.innerHTML = `
+      <div style="padding:14px 20px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:36px;line-height:1">${weerIcon(wc)}</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--inkt)">${weerLabel(wc)}</div>
+          <div style="font-size:13px;color:var(--inkt-zacht);margin-top:3px">🌡️ ${lo}–${hi}°C · 💧 ${mm} mm neerslag</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--inkt-zacht);text-align:right">Wedstrijddag<br>verwachting</div>
+      </div>`;
+  } catch (e) {
+    if (weerSectie) weerSectie.style.display = "none";
+  }
+}
+
 /* ── Mededelingen ────────────────────────────────────────────── */
 async function laadMededelingen() {
   const container = document.getElementById("mededelingen-sectie");
@@ -430,14 +564,26 @@ document.addEventListener("DOMContentLoaded", function () {
     sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
     sportlinkFetch("stand"),
     supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
+    supaFetch("spelers", { select: "id,naam,gele_kaarten", order: "naam.asc" }),
   ]).then(function (results) {
     const programma        = results[0].status === "fulfilled" ? results[0].value : null;
     const uitslag          = results[1].status === "fulfilled" ? results[1].value : null;
     const stand            = results[2].status === "fulfilled" ? results[2].value : null;
     const supaWedstrijden  = results[3].status === "fulfilled" ? results[3].value : [];
+    const spelers          = results[4].status === "fulfilled" ? results[4].value : [];
 
     const supaGepland  = (supaWedstrijden || []).filter(function (w) { return (w.status || "gepland") === "gepland"; });
     const supaGespeeld = (supaWedstrijden || []).filter(function (w) { return w.status === "gespeeld"; });
+
+    // Determine volgende wedstrijd for weather widget
+    const nu = new Date();
+    const sportlinkGepland = (programma || [])
+      .filter(function (i) { return i.teamnaam && i.teamnaam.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase(); })
+      .map(function (i) { return maakWedstrijdObject(i, "gepland"); })
+      .filter(function (w) { return new Date(w.datum) >= nu; });
+    const supaOpkomend = (supaGepland || []).filter(function (w) { return new Date(w.datum) >= nu; });
+    const alOpkomend   = sportlinkGepland.concat(supaOpkomend).sort(function (a, b) { return new Date(a.datum) - new Date(b.datum); });
+    const volgendeW    = alOpkomend[0] || null;
 
     if (programma !== null || supaGepland.length > 0) {
       renderVolgendeWedstrijd(programma, supaGepland);
@@ -446,8 +592,23 @@ document.addEventListener("DOMContentLoaded", function () {
       if (el) el.innerHTML = foutState("Kon programma niet laden.");
     }
 
+    // Weer voor volgende wedstrijd
+    if (volgendeW) {
+      laadWeerWidget(volgendeW.datum);
+    } else {
+      const ws = document.getElementById("weer-sectie");
+      if (ws) ws.style.display = "none";
+    }
+
     renderLaatsteUitslag(uitslag, supaGespeeld);
     renderStats(stand, uitslag, supaGespeeld);
+
+    // Seizoensgrafiek: Supabase gespeeld + Sportlink gespeeld
+    const sportlinkGespeeld = (uitslag || [])
+      .filter(function (i) { return i.teamnaam && i.teamnaam.toLowerCase() === SPORTLINK_TEAM_NAAM.toLowerCase(); })
+      .map(function (i) { return maakWedstrijdObject(i, "gespeeld"); });
+    const alleGespeeld = sportlinkGespeeld.concat(supaGespeeld.filter(function(w){return w.score_eigen!=null;}));
+    renderSeizoensgrafiek(alleGespeeld);
 
     if (stand !== null) {
       renderStandPositie(stand);
@@ -455,6 +616,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const el = document.getElementById("stand-positie");
       if (el) el.innerHTML = foutState("Kon stand niet laden.");
     }
+
+    // Kaartenstatus
+    renderKaartenStatus(spelers);
   });
 
   laadVolgendeTraining();
