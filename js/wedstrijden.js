@@ -25,6 +25,19 @@ function supaFetch(pad, params) {
   });
 }
 
+function supaPatch(pad, id, body) {
+  return fetch(SUPABASE_URL + pad + "?id=eq." + encodeURIComponent(id), {
+    method: "PATCH",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -67,10 +80,33 @@ function getWedstrijdStatus(w) {
 }
 
 /* ── State ──────────────────────────────────────────────────── */
-let alleWedstrijden  = [];
-let huidigeTab       = "aankomend";
-let gerenderdeLijst  = [];
-let huidigeBewerking = null;
+let alleWedstrijden        = [];
+let alleBeschikbareSpelers = [];
+let huidigeTab             = "aankomend";
+let gerenderdeLijst        = [];
+let huidigeBewerking       = null;
+
+/* ── Spelers datalist ───────────────────────────────────────── */
+function bouwSpelersDatalist() {
+  let dl = document.getElementById("spelers-datalist");
+  if (!dl) {
+    dl = document.createElement("datalist");
+    dl.id = "spelers-datalist";
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = alleBeschikbareSpelers
+    .slice()
+    .sort(function (a, b) { return (a.rugnummer || 99) - (b.rugnummer || 99); })
+    .map(function (s) {
+      return `<option value="${escapeHtml(s.naam)}">${s.rugnummer ? "#" + s.rugnummer + " · " : ""}${escapeHtml(s.positie || "")}</option>`;
+    }).join("");
+}
+
+function vindSpeler(naam) {
+  if (!naam) return null;
+  const lc = naam.trim().toLowerCase();
+  return alleBeschikbareSpelers.find(function (s) { return s.naam.trim().toLowerCase() === lc; }) || null;
+}
 
 /* ── Render ─────────────────────────────────────────────────── */
 function renderWedstrijden() {
@@ -102,10 +138,10 @@ function renderWedstrijden() {
   }
 
   container.innerHTML = lijst.map(function (w, i) {
-    const d      = new Date(w.datum);
-    const dag    = d.getDate();
-    const maand  = d.toLocaleDateString("nl-NL", { month: "short" });
-    const tijd   = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    const d    = new Date(w.datum);
+    const dag  = d.getDate();
+    const maand = d.toLocaleDateString("nl-NL", { month: "short" });
+    const tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
     const isHandmatig = !!w.id;
 
     const thuisBadge = w.thuis_uit === "thuis"
@@ -121,7 +157,6 @@ function renderWedstrijden() {
       rechts = `<div class="wedstrijd-tijd">${tijd}</div>`;
     }
 
-    // Toon doelpunten/kaarten preview bij gespeelde handmatige wedstrijden
     let extraInfo = "";
     if (isHandmatig && w.doelpunten && w.doelpunten.length > 0) {
       const doelTekst = w.doelpunten.map(function (d) {
@@ -162,7 +197,6 @@ function renderWedstrijden() {
       </div>`;
   }).join("");
 
-  // Klik op kaart → detail (alleen klikbaar gedeelte, niet edit-knop)
   container.querySelectorAll(".wedstrijd-kaart").forEach(function (kaart) {
     kaart.addEventListener("click", function (e) {
       if (e.target.closest(".bewerk-btn")) return;
@@ -172,7 +206,6 @@ function renderWedstrijden() {
     });
   });
 
-  // Klik op edit-knop → open uitslag modal
   container.querySelectorAll(".bewerk-btn").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -187,7 +220,7 @@ function openUitslagModal(w) {
   huidigeBewerking = w;
 
   document.getElementById("uitslag-modal-titel").textContent = "Uitslag — " + (w.tegenstander || "");
-  document.getElementById("uitslag-tegenstander-label").textContent = escapeHtml(w.tegenstander || "Tegenstander");
+  document.getElementById("uitslag-tegenstander-label").textContent = w.tegenstander || "Tegenstander";
 
   const scoreE = document.getElementById("uitslag-score-eigen");
   const scoreT = document.getElementById("uitslag-score-tegenstander");
@@ -196,12 +229,10 @@ function openUitslagModal(w) {
 
   document.getElementById("uitslag-fout").textContent = "";
 
-  // Laad bestaande doelpunten
   const doelLijst = document.getElementById("doelpunten-lijst");
   doelLijst.innerHTML = "";
   (w.doelpunten || []).forEach(function (d) { voegDoelpuntRij(d.speler, d.minuut); });
 
-  // Laad bestaande kaarten
   const kaartLijst = document.getElementById("kaarten-lijst");
   kaartLijst.innerHTML = "";
   (w.kaarten || []).forEach(function (k) { voegKaartRij(k.speler, k.minuut, k.type); });
@@ -218,30 +249,84 @@ function voegDoelpuntRij(speler, minuut) {
   const rij = document.createElement("div");
   rij.className = "event-rij";
   rij.innerHTML = `
-    <input type="text" class="formulier-input doel-speler" placeholder="Naam speler" value="${escapeHtml(speler || "")}" style="flex:1;min-width:0">
-    <input type="number" class="formulier-input doel-minuut" placeholder="Min" min="1" max="120" value="${minuut || ""}" style="width:68px;text-align:center">
+    <input type="text" class="formulier-input doel-speler" placeholder="Speler kiezen…"
+      list="spelers-datalist" value="${escapeHtml(speler || "")}" autocomplete="off" style="flex:1;min-width:0">
+    <input type="number" class="formulier-input doel-minuut" placeholder="Min" min="1" max="120"
+      value="${minuut || ""}" style="width:68px;text-align:center">
     <button class="btn-verwijder-rij" title="Verwijderen">✕</button>
   `;
   rij.querySelector(".btn-verwijder-rij").addEventListener("click", function () { rij.remove(); });
   document.getElementById("doelpunten-lijst").appendChild(rij);
+  rij.querySelector(".doel-speler").focus();
 }
 
 function voegKaartRij(speler, minuut, type) {
   const rij = document.createElement("div");
   rij.className = "event-rij";
   rij.innerHTML = `
-    <input type="text" class="formulier-input kaart-speler" placeholder="Naam speler" value="${escapeHtml(speler || "")}" style="flex:1;min-width:0">
-    <input type="number" class="formulier-input kaart-minuut" placeholder="Min" min="1" max="120" value="${minuut || ""}" style="width:68px;text-align:center">
+    <input type="text" class="formulier-input kaart-speler" placeholder="Speler kiezen…"
+      list="spelers-datalist" value="${escapeHtml(speler || "")}" autocomplete="off" style="flex:1;min-width:0">
+    <input type="number" class="formulier-input kaart-minuut" placeholder="Min" min="1" max="120"
+      value="${minuut || ""}" style="width:68px;text-align:center">
     <select class="formulier-select kaart-type" style="width:100px;padding-right:28px">
-      <option value="geel" ${type === "geel" ? "selected" : ""}>🟡 Geel</option>
+      <option value="geel" ${(type || "geel") === "geel" ? "selected" : ""}>🟡 Geel</option>
       <option value="rood" ${type === "rood" ? "selected" : ""}>🔴 Rood</option>
     </select>
     <button class="btn-verwijder-rij" title="Verwijderen">✕</button>
   `;
   rij.querySelector(".btn-verwijder-rij").addEventListener("click", function () { rij.remove(); });
   document.getElementById("kaarten-lijst").appendChild(rij);
+  rij.querySelector(".kaart-speler").focus();
 }
 
+/* ── Speler stats bijwerken ─────────────────────────────────── */
+async function werkSpelerStatsbij(oudeDoelpunten, nieuweDoelpunten, oudeKaarten, nieuweKaarten) {
+  const diff = {};
+
+  function voegToe(naam, veld, delta) {
+    const s = vindSpeler(naam);
+    if (!s) return;
+    if (!diff[s.id]) diff[s.id] = { speler: s, goals: 0, gele_kaarten: 0, rode_kaarten: 0 };
+    diff[s.id][veld] += delta;
+  }
+
+  // Doelpunten: trek oud af, tel nieuw op
+  (oudeDoelpunten || []).forEach(function (d) { voegToe(d.speler, "goals", -1); });
+  (nieuweDoelpunten || []).forEach(function (d) { voegToe(d.speler, "goals", +1); });
+
+  // Kaarten: trek oud af, tel nieuw op
+  (oudeKaarten || []).forEach(function (k) {
+    voegToe(k.speler, k.type === "rood" ? "rode_kaarten" : "gele_kaarten", -1);
+  });
+  (nieuweKaarten || []).forEach(function (k) {
+    voegToe(k.speler, k.type === "rood" ? "rode_kaarten" : "gele_kaarten", +1);
+  });
+
+  // Stuur alleen patches voor spelers waarbij iets gewijzigd is
+  const patches = Object.values(diff)
+    .filter(function (d) { return d.goals !== 0 || d.gele_kaarten !== 0 || d.rode_kaarten !== 0; })
+    .map(function (d) {
+      const s = d.speler;
+      const body = {};
+      if (d.goals !== 0)        body.goals        = Math.max(0, (s.goals        || 0) + d.goals);
+      if (d.gele_kaarten !== 0) body.gele_kaarten = Math.max(0, (s.gele_kaarten || 0) + d.gele_kaarten);
+      if (d.rode_kaarten !== 0) body.rode_kaarten = Math.max(0, (s.rode_kaarten || 0) + d.rode_kaarten);
+      return supaPatch("spelers", s.id, body);
+    });
+
+  await Promise.allSettled(patches);
+
+  // Lokale kopie bijwerken zodat herhaald opslaan klopt
+  Object.values(diff).forEach(function (d) {
+    const s = alleBeschikbareSpelers.find(function (sp) { return sp.id === d.speler.id; });
+    if (!s) return;
+    if (d.goals !== 0)        s.goals        = Math.max(0, (s.goals        || 0) + d.goals);
+    if (d.gele_kaarten !== 0) s.gele_kaarten = Math.max(0, (s.gele_kaarten || 0) + d.gele_kaarten);
+    if (d.rode_kaarten !== 0) s.rode_kaarten = Math.max(0, (s.rode_kaarten || 0) + d.rode_kaarten);
+  });
+}
+
+/* ── Uitslag opslaan ────────────────────────────────────────── */
 async function slaatUitslagOp() {
   if (!huidigeBewerking || !huidigeBewerking.id) return;
 
@@ -253,7 +338,7 @@ async function slaatUitslagOp() {
     return;
   }
 
-  // Verzamel doelpunten
+  // Verzamel nieuwe doelpunten
   const doelpunten = [];
   document.querySelectorAll("#doelpunten-lijst .event-rij").forEach(function (rij) {
     const speler = rij.querySelector(".doel-speler").value.trim();
@@ -261,7 +346,7 @@ async function slaatUitslagOp() {
     if (speler) doelpunten.push({ speler: speler, minuut: isNaN(minuut) ? null : minuut });
   });
 
-  // Verzamel kaarten
+  // Verzamel nieuwe kaarten
   const kaarten = [];
   document.querySelectorAll("#kaarten-lijst .event-rij").forEach(function (rij) {
     const speler = rij.querySelector(".kaart-speler").value.trim();
@@ -275,24 +360,24 @@ async function slaatUitslagOp() {
   document.getElementById("uitslag-fout").textContent = "";
 
   try {
-    const r = await fetch(SUPABASE_URL + "wedstrijden?id=eq." + encodeURIComponent(huidigeBewerking.id), {
-      method: "PATCH",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        status:             "gespeeld",
-        score_eigen:        scoreEigen,
-        score_tegenstander: scoreTegen,
-        doelpunten:         doelpunten.length ? doelpunten : null,
-        kaarten:            kaarten.length ? kaarten : null,
-      }),
+    // 1. Sla uitslag op in wedstrijden tabel
+    const r = await supaPatch("wedstrijden", huidigeBewerking.id, {
+      status:             "gespeeld",
+      score_eigen:        scoreEigen,
+      score_tegenstander: scoreTegen,
+      doelpunten:         doelpunten.length ? doelpunten : null,
+      kaarten:            kaarten.length ? kaarten : null,
     });
 
     if (!r.ok) throw new Error("HTTP " + r.status);
+
+    // 2. Update spelersstatistieken (diff oud vs nieuw)
+    await werkSpelerStatsbij(
+      huidigeBewerking.doelpunten || [],
+      doelpunten,
+      huidigeBewerking.kaarten || [],
+      kaarten
+    );
 
     sluitUitslagModal();
     laadWedstrijden();
@@ -315,7 +400,7 @@ async function laadWedstrijden() {
   try {
     const [r0, r1, r2] = await Promise.allSettled([
       sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
-      sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+      sportlinkFetch("uitslagen",  { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
       supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
     ]);
 
@@ -359,5 +444,14 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("voeg-doel-toe").addEventListener("click", function () { voegDoelpuntRij("", ""); });
   document.getElementById("voeg-kaart-toe").addEventListener("click", function () { voegKaartRij("", "", "geel"); });
 
-  laadWedstrijden();
+  // Laad spelers voor autocomplete, daarna wedstrijden
+  supaFetch("spelers", { select: "id,naam,rugnummer,positie,goals,gele_kaarten,rode_kaarten", order: "rugnummer.asc" })
+    .then(function (data) {
+      alleBeschikbareSpelers = data || [];
+      bouwSpelersDatalist();
+    })
+    .catch(function () {})
+    .finally(function () {
+      laadWedstrijden();
+    });
 });
