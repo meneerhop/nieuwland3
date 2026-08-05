@@ -240,6 +240,7 @@ function openDetail(id) {
         ${s.rugnummer ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:6px">Rugnummer #${s.rugnummer}</div>` : ""}
         ${s.geboortedatum ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">🎂 ${new Date(s.geboortedatum + "T00:00:00").toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"})}</div>` : ""}
         ${s.telefoon ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">📱 <a href="tel:${escapeHtml(s.telefoon)}" style="color:var(--blauw);font-weight:600">${escapeHtml(s.telefoon)}</a></div>` : ""}
+        ${s.knvb_nummer ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">🪪 KNVB: <span style="font-weight:700;color:var(--inkt)">${escapeHtml(s.knvb_nummer)}</span></div>` : ""}
       </div>
     </div>
     <div class="speler-stats-grid">
@@ -301,6 +302,7 @@ function vulFormulier(s) {
   document.getElementById("form-biografie").value          = s ? s.biografie || "" : "";
   document.getElementById("form-geboortedatum").value      = s ? s.geboortedatum || "" : "";
   document.getElementById("form-telefoon").value           = s ? s.telefoon || "" : "";
+  document.getElementById("form-knvb_nummer").value        = s ? s.knvb_nummer || "" : "";
   const aanv = document.getElementById("form-aanvoerder");
   if (aanv) aanv.checked = s ? !!s.aanvoerder : false;
   const stat = document.getElementById("form-status");
@@ -361,6 +363,7 @@ async function slaSpelerOp() {
       status:               statEl ? statEl.value : "beschikbaar",
       geboortedatum:        document.getElementById("form-geboortedatum").value || null,
       telefoon:             document.getElementById("form-telefoon").value.trim() || null,
+      knvb_nummer:          document.getElementById("form-knvb_nummer").value.trim().toUpperCase() || null,
     };
 
     btn.textContent = "Opslaan…";
