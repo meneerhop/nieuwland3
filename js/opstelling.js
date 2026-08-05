@@ -122,7 +122,9 @@ function renderVeld() {
 
     const leeg = !speler;
     const inhoud = speler
-      ? `<span style="font-size:11px;font-weight:800;line-height:1">${speler.rugnummer || "?"}</span>`
+      ? speler.foto_url
+        ? `<img src="${escapeHtml(speler.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+        : `<span style="font-size:11px;font-weight:800;line-height:1">${speler.rugnummer || "?"}</span>`
       : `<span style="font-size:20px;line-height:1">+</span>`;
 
     const naam = speler ? escapeHtml(speler.naam.split(" ")[0]) : pos.label;
@@ -190,7 +192,9 @@ function renderVeld() {
       : null;
     const leeg = !speler;
     const inhoud = speler
-      ? `<span style="font-size:11px;font-weight:800">${speler.rugnummer || "?"}</span>`
+      ? speler.foto_url
+        ? `<img src="${escapeHtml(speler.foto_url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+        : `<span style="font-size:11px;font-weight:800">${speler.rugnummer || "?"}</span>`
       : `<span style="font-size:18px">+</span>`;
     const naam = speler ? escapeHtml(speler.naam.split(" ")[0]) : "Bank";
     return `
@@ -224,9 +228,13 @@ function openSpelerKiezer() {
   lijst.innerHTML = opties.map(function (s) {
     const actief = s.id === huidig ? " stijl-actief" : "";
     const positieTekst = s.positie ? ` (${s.positie})` : "";
+    const fotoHtml = s.foto_url
+      ? `<img src="${escapeHtml(s.foto_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,46,95,0.20);flex-shrink:0">`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:var(--blauw-zacht);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚽</div>`;
     return `
       <div class="kiezer-optie glass-kaart${actief}" data-speler-id="${s.id === null ? "" : s.id}">
-        <span style="font-weight:700">${s.rugnummer ? "#" + s.rugnummer + " " : ""}${escapeHtml(s.naam)}</span>
+        ${s.id !== null ? fotoHtml : ""}
+        <span style="font-weight:700;flex:1">${s.rugnummer ? "#" + s.rugnummer + " " : ""}${escapeHtml(s.naam)}</span>
         <span style="font-size:12px;color:var(--inkt-zacht)">${positieTekst}</span>
       </div>`;
   }).join("");

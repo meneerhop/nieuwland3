@@ -121,8 +121,27 @@
         </div>
 
         <div class="formulier-groep">
-          <label class="formulier-label" for="form-foto_url">Foto URL (optioneel)</label>
-          <input type="url" id="form-foto_url" class="formulier-input" placeholder="https://…" autocomplete="off">
+          <label class="formulier-label">Foto</label>
+          <div id="foto-preview-wrap" style="display:none;align-items:center;gap:12px;margin-bottom:10px">
+            <img id="foto-preview" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,46,95,0.25)">
+            <button type="button" id="foto-verwijder-btn" style="font-size:12px;color:var(--rood);background:none;border:none;cursor:pointer;font-weight:600">✕ Verwijderen</button>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:var(--glas);border:1px solid var(--lijn);border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-weight:600;color:var(--blauw);box-shadow:var(--schaduw)">
+            📷 Foto kiezen
+            <input type="file" id="form-foto-bestand" accept="image/*" style="display:none">
+          </label>
+          <input type="url" id="form-foto_url" class="formulier-input" placeholder="of plak een URL…" autocomplete="off" style="margin-top:10px">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-geboortedatum">Geboortedatum</label>
+            <input type="date" id="form-geboortedatum" class="formulier-input">
+          </div>
+          <div class="formulier-groep" style="margin-bottom:0">
+            <label class="formulier-label" for="form-telefoon">Telefoon</label>
+            <input type="tel" id="form-telefoon" class="formulier-input" placeholder="06-…" autocomplete="off">
+          </div>
         </div>
 
         <div class="sectie-label" style="margin-top:16px;margin-bottom:8px">Statistieken</div>

@@ -955,6 +955,7 @@ img { max-width: 100%; display: block; }
   font-weight: 800;
   color: var(--blauw);
   line-height: 1;
+  overflow: hidden;
 }
 
 .speler-cirkel.leeg {
@@ -1880,6 +1881,7 @@ body.donker .stand-tabel tbody tr.eigen-team { background: rgba(0,46,95,0.22); }
   font-weight: 800;
   color: var(--blauw);
   transition: transform var(--transition);
+  overflow: hidden;
 }
 
 .bank-cirkel.leeg {

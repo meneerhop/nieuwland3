@@ -31,7 +31,13 @@ function weergaveNaam(teamnaam) {
 }
 
 /* ── State ──────────────────────────────────────────────────── */
-let alleRijen = [];
+let alleRijen       = [];
+let ververseTimer   = null;
+
+function toonLaatsteUpdate() {
+  const el = document.getElementById("stand-laatste-update");
+  if (el) el.textContent = "Bijgewerkt: " + new Date().toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+}
 
 /* ── Render ─────────────────────────────────────────────────── */
 function renderStand() {
@@ -108,6 +114,7 @@ async function laadStand() {
     console.log("Sportlink stand:", data);
     alleRijen = data || [];
     renderStand();
+    toonLaatsteUpdate();
   } catch (e) {
     container.innerHTML = `
       <div class="leeg-staat">
@@ -121,4 +128,10 @@ async function laadStand() {
 /* ── Init ───────────────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", function () {
   laadStand();
+
+  const vervBtn = document.getElementById("stand-ververs-btn");
+  if (vervBtn) vervBtn.addEventListener("click", laadStand);
+
+  // Auto-refresh elke 5 minuten
+  ververseTimer = setInterval(laadStand, 5 * 60 * 1000);
 });

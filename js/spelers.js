@@ -108,10 +108,35 @@ function statusBadge(status) {
 }
 
 /* ── State ──────────────────────────────────────────────────── */
-let alleSpelers  = [];
-let huidigSpeler = null;
-let bewerkSpeler = null;
-let zoekterm     = "";
+let alleSpelers       = [];
+let huidigSpeler      = null;
+let bewerkSpeler      = null;
+let zoekterm          = "";
+let gekozenFotoBestand = null;
+
+/* ── Foto upload ────────────────────────────────────────────── */
+async function uploadFoto(bestand, naam) {
+  const ext = bestand.name.split(".").pop() || "png";
+  const bestandsnaam = naam.replace(/\s+/g, "_") + "_" + Date.now() + "." + ext;
+  const resp = await fetch(
+    SUPABASE_PROJECT_URL + "/storage/v1/object/spelersfotos/" + bestandsnaam,
+    {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": bestand.type || "image/png",
+        "x-upsert": "true",
+      },
+      body: bestand,
+    }
+  );
+  if (!resp.ok) {
+    const err = await resp.json().catch(function () { return {}; });
+    throw new Error(err.message || "Upload mislukt");
+  }
+  return SUPABASE_PROJECT_URL + "/storage/v1/object/public/spelersfotos/" + bestandsnaam;
+}
 
 /* ── Top scorers ────────────────────────────────────────────── */
 function renderTopScorers() {
@@ -213,6 +238,8 @@ function openDetail(id) {
           ${s.aanvoerder ? '<span class="badge badge-aanvoerder">Aanvoerder</span>' : ""}
         </div>
         ${s.rugnummer ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:6px">Rugnummer #${s.rugnummer}</div>` : ""}
+        ${s.geboortedatum ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">🎂 ${new Date(s.geboortedatum + "T00:00:00").toLocaleDateString("nl-NL",{day:"numeric",month:"long",year:"numeric"})}</div>` : ""}
+        ${s.telefoon ? `<div style="font-size:13px;color:var(--inkt-zacht);margin-top:4px">📱 <a href="tel:${escapeHtml(s.telefoon)}" style="color:var(--blauw);font-weight:600">${escapeHtml(s.telefoon)}</a></div>` : ""}
       </div>
     </div>
     <div class="speler-stats-grid">
@@ -265,18 +292,33 @@ function vulFormulier(s) {
   document.getElementById("form-naam").value               = s ? s.naam || "" : "";
   document.getElementById("form-rugnummer").value          = s ? s.rugnummer || "" : "";
   document.getElementById("form-positie").value            = s ? s.positie || "" : "";
-  document.getElementById("form-foto_url").value           = s ? s.foto_url || "" : "";
+  document.getElementById("form-foto_url").value           = s && !s.foto_url?.startsWith("http") ? s.foto_url || "" : s && s.foto_url?.startsWith("http") ? s.foto_url : "";
   document.getElementById("form-goals").value              = s ? s.goals || 0 : 0;
   document.getElementById("form-assists").value            = s ? s.assists || 0 : 0;
   document.getElementById("form-gele_kaarten").value       = s ? s.gele_kaarten || 0 : 0;
   document.getElementById("form-rode_kaarten").value       = s ? s.rode_kaarten || 0 : 0;
   document.getElementById("form-wedstrijden_gespeeld").value = s ? s.wedstrijden_gespeeld || 0 : 0;
   document.getElementById("form-biografie").value          = s ? s.biografie || "" : "";
+  document.getElementById("form-geboortedatum").value      = s ? s.geboortedatum || "" : "";
+  document.getElementById("form-telefoon").value           = s ? s.telefoon || "" : "";
   const aanv = document.getElementById("form-aanvoerder");
   if (aanv) aanv.checked = s ? !!s.aanvoerder : false;
   const stat = document.getElementById("form-status");
   if (stat) stat.value = s ? (s.status || "beschikbaar") : "beschikbaar";
   document.getElementById("form-speler-fout").textContent  = "";
+
+  gekozenFotoBestand = null;
+  document.getElementById("form-foto-bestand").value = "";
+  const previewWrap = document.getElementById("foto-preview-wrap");
+  const previewImg  = document.getElementById("foto-preview");
+  if (s && s.foto_url) {
+    previewImg.src = s.foto_url;
+    previewWrap.style.display = "flex";
+    document.getElementById("form-foto_url").value = s.foto_url;
+  } else {
+    previewWrap.style.display = "none";
+    previewImg.src = "";
+  }
 }
 
 function sluitFormModal() {
@@ -292,26 +334,36 @@ async function slaSpelerOp() {
 
   const aanvEl = document.getElementById("form-aanvoerder");
   const statEl = document.getElementById("form-status");
-  const payload = {
-    naam:                 naam,
-    rugnummer:            parseInt(document.getElementById("form-rugnummer").value) || null,
-    positie:              document.getElementById("form-positie").value.trim() || null,
-    foto_url:             document.getElementById("form-foto_url").value.trim() || null,
-    goals:                parseInt(document.getElementById("form-goals").value) || 0,
-    assists:              parseInt(document.getElementById("form-assists").value) || 0,
-    gele_kaarten:         parseInt(document.getElementById("form-gele_kaarten").value) || 0,
-    rode_kaarten:         parseInt(document.getElementById("form-rode_kaarten").value) || 0,
-    wedstrijden_gespeeld: parseInt(document.getElementById("form-wedstrijden_gespeeld").value) || 0,
-    biografie:            document.getElementById("form-biografie").value.trim() || null,
-    aanvoerder:           aanvEl ? aanvEl.checked : false,
-    status:               statEl ? statEl.value : "beschikbaar",
-  };
 
   const btn = document.getElementById("form-opslaan-btn");
   btn.textContent = "Opslaan…";
   btn.disabled = true;
 
   try {
+    let fotoUrl = document.getElementById("form-foto_url").value.trim() || null;
+    if (gekozenFotoBestand) {
+      btn.textContent = "Foto uploaden…";
+      fotoUrl = await uploadFoto(gekozenFotoBestand, naam);
+    }
+
+    const payload = {
+      naam:                 naam,
+      rugnummer:            parseInt(document.getElementById("form-rugnummer").value) || null,
+      positie:              document.getElementById("form-positie").value.trim() || null,
+      foto_url:             fotoUrl,
+      goals:                parseInt(document.getElementById("form-goals").value) || 0,
+      assists:              parseInt(document.getElementById("form-assists").value) || 0,
+      gele_kaarten:         parseInt(document.getElementById("form-gele_kaarten").value) || 0,
+      rode_kaarten:         parseInt(document.getElementById("form-rode_kaarten").value) || 0,
+      wedstrijden_gespeeld: parseInt(document.getElementById("form-wedstrijden_gespeeld").value) || 0,
+      biografie:            document.getElementById("form-biografie").value.trim() || null,
+      aanvoerder:           aanvEl ? aanvEl.checked : false,
+      status:               statEl ? statEl.value : "beschikbaar",
+      geboortedatum:        document.getElementById("form-geboortedatum").value || null,
+      telefoon:             document.getElementById("form-telefoon").value.trim() || null,
+    };
+
+    btn.textContent = "Opslaan…";
     if (bewerkSpeler) {
       await supaPatch("spelers", bewerkSpeler.id, payload);
     } else {
@@ -320,7 +372,9 @@ async function slaSpelerOp() {
     sluitFormModal();
     await laadSpelers();
   } catch (e) {
-    foutEl.textContent = "Opslaan mislukt. Probeer opnieuw.";
+    foutEl.textContent = e.message && e.message.includes("does not exist")
+      ? "Voeg eerst de ontbrekende kolommen toe in Supabase."
+      : "Opslaan mislukt. Probeer opnieuw.";
   } finally {
     btn.textContent = "Opslaan";
     btn.disabled = false;
@@ -403,6 +457,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const verwijderBtn = document.getElementById("form-verwijder-btn");
   if (verwijderBtn) verwijderBtn.addEventListener("click", verwijderSpeler);
+
+  const fotoBestandInput = document.getElementById("form-foto-bestand");
+  if (fotoBestandInput) {
+    fotoBestandInput.addEventListener("change", function () {
+      const bestand = fotoBestandInput.files[0];
+      if (!bestand) return;
+      gekozenFotoBestand = bestand;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const previewImg  = document.getElementById("foto-preview");
+        const previewWrap = document.getElementById("foto-preview-wrap");
+        previewImg.src = e.target.result;
+        previewWrap.style.display = "flex";
+        document.getElementById("form-foto_url").value = "";
+      };
+      reader.readAsDataURL(bestand);
+    });
+  }
+
+  const fotoVerwijderBtn = document.getElementById("foto-verwijder-btn");
+  if (fotoVerwijderBtn) {
+    fotoVerwijderBtn.addEventListener("click", function () {
+      gekozenFotoBestand = null;
+      document.getElementById("foto-preview-wrap").style.display = "none";
+      document.getElementById("foto-preview").src = "";
+      document.getElementById("form-foto_url").value = "";
+      document.getElementById("form-foto-bestand").value = "";
+    });
+  }
 
   laadSpelers();
 });
