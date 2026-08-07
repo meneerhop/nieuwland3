@@ -4,7 +4,7 @@
 
 /* ── Helpers ───────────────────────────────────────────────── */
 function sportlinkFetch(endpoint, params) {
-  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID, token: SPORTLINK_TOKEN }, params || {});
+  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID }, params || {});
   return fetch("https://data.sportlink.com/" + endpoint + "?" + new URLSearchParams(p))
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
 }
@@ -449,8 +449,8 @@ async function laadWedstrijden() {
 
   try {
     const [r0, r1, r2] = await Promise.allSettled([
-      sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
-      sportlinkFetch("uitslagen",  { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+      sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "NEE" }),
+      sportlinkFetch("uitslagen",  { aantaldagen: 120, gebruiklokaleteamgegevens: "NEE" }),
       supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
     ]);
     const gepland  = (r0.value||[]).filter(function(i){return isOnsTeam(i.teamnaam);}).map(function(i){return maakWedstrijdObject(i,"gepland");});

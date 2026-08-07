@@ -4,7 +4,7 @@
 
 /* ── Helpers ───────────────────────────────────────────────── */
 function sportlinkFetch(endpoint, params) {
-  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID, token: SPORTLINK_TOKEN }, params || {});
+  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID }, params || {});
   return fetch("https://data.sportlink.com/" + endpoint + "?" + new URLSearchParams(p))
     .then(function (r) {
       if (!r.ok) throw new Error("Netwerkfout " + r.status);
@@ -560,8 +560,8 @@ document.addEventListener("DOMContentLoaded", function () {
   laadDatum();
 
   Promise.allSettled([
-    sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
-    sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "JA" }),
+    sportlinkFetch("programma", { aantaldagen: 120, gebruiklokaleteamgegevens: "NEE" }),
+    sportlinkFetch("uitslagen", { aantaldagen: 120, gebruiklokaleteamgegevens: "NEE" }),
     sportlinkFetch("stand"),
     supaFetch("wedstrijden", { select: "*", order: "datum.asc" }),
     supaFetch("spelers", { select: "id,naam,gele_kaarten", order: "naam.asc" }),
