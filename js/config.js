@@ -9,4 +9,5 @@ const SUPABASE_ANON_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 const SITE_PIN             = "2853";
 const TEAM_NAAM            = "ASC Nieuwland 3";
 const SPORTLINK_CLIENT_ID  = "deKy35BQJZ";
+const SPORTLINK_TOKEN      = ""; // ingevuld via js/config.local.js (niet in git)
 const SPORTLINK_TEAM_NAAM  = "Nieuwland ASC 3"; // naam zoals Sportlink het gebruikt

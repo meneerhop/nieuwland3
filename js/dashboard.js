@@ -4,7 +4,7 @@
 
 /* ── Helpers ───────────────────────────────────────────────── */
 function sportlinkFetch(endpoint, params) {
-  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID }, params || {});
+  const p = Object.assign({ client_id: SPORTLINK_CLIENT_ID, token: SPORTLINK_TOKEN }, params || {});
   return fetch("https://data.sportlink.com/" + endpoint + "?" + new URLSearchParams(p))
     .then(function (r) {
       if (!r.ok) throw new Error("Netwerkfout " + r.status);
